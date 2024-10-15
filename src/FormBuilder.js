@@ -420,6 +420,49 @@ const FormBuilder = () => {
               )}
             </div>
           );
+        
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: settings?.alignment || 'center', width: '100%' }}>
+              <input
+                type={settings?.showPasswordOption && settings?.showPassword ? 'text' : 'password'}
+                placeholder={settings?.placeholder || 'Enter password'}
+                required={settings?.required}
+                onBlur={(e) => {
+                  const isValid = validatePassword(e.target.value, settings);
+                  updateElementSettings(element.id, { ...settings, isValid });
+                }}
+                style={{
+                  borderRadius: '8px',
+                  padding: '10px',
+                  width: '300px', // You can adjust the width as needed
+                  border: settings?.isValid === false ? '2px solid #ff0000' : '1px solid #ced4da',
+                  textAlign: 'left', // Ensures the placeholder text stays aligned left
+                  margin: '0 auto' // Center the input box itself
+                }}
+              />
+              {settings?.showPasswordOption && (
+                <label style={{ marginLeft: '10px' }}>
+                  <input
+                    type="checkbox"
+                    checked={settings?.showPassword || false}
+                    onChange={(e) => updateElementSettings(element.id, { ...settings, showPassword: e.target.checked })}
+                  />
+                  Show Password
+                </label>
+              )}
+            </div>
+            <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              {settings?.passwordLength && <p style={{ marginRight: '20px' }}>Requires Minimum Length: {settings.passwordLength}</p>}
+              {settings?.requireSymbols && <p style={{ marginRight: '20px' }}>Requires Symbols: Yes</p>}
+              {settings?.requireNumbers && <p>Requires Numbers: Yes</p>}
+            </div>
+            {!settings?.isValid && settings?.isValid !== undefined && (
+              <span style={{ color: '#ff0000', fontSize: '0.8em', marginTop: '5px' }}>Password does not meet requirements</span>
+            )}
+          </div>
+
+        );
       default:
         return (
           <input
