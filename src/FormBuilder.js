@@ -186,12 +186,23 @@ const FormBuilder = () => {
     switch (element.type) {
       case 'heading': {
         const HeaderTag = settings?.headerLevel || 'h1';
-        return <HeaderTag style={alignmentStyle}>{settings?.label || element.label}</HeaderTag>;
+        const alignmentStyle = { 
+          textAlign: settings?.alignment || 'center', // Ensure alignment is applied here
+          margin: 0 // Optional: Prevents extra margin which could affect layout
+        };
+      
+        return (
+          <div style={{ width: '100%', display: 'flex', justifyContent: settings?.alignment }}>
+            <HeaderTag style={alignmentStyle}>
+              {settings?.label || element.label}
+            </HeaderTag>
+          </div>
+        );
       }
       case 'text':
         return <p style={alignmentStyle}>{settings?.label || element.label}</p>;
       case 'divider':
-        return <hr style={{ ...alignmentStyle, width: '100%' }} />;
+      return <hr style={{ ...alignmentStyle, width: '100%' }} />;
       case 'button':
         return (
           <div
@@ -223,8 +234,35 @@ const FormBuilder = () => {
             </button>
           </div>
         );
-      case 'image':
-        return <img src="https://via.placeholder.com/150" alt="Placeholder" style={alignmentStyle} />;
+      case 'image': {
+        const alignment = settings?.alignment || 'center'; // Default to 'center'
+      
+        const wrapperStyle = {
+          display: 'flex',
+          justifyContent:
+            alignment === 'left'
+              ? 'flex-start'
+              : alignment === 'center'
+              ? 'center'
+              : 'flex-end',
+          width: '100%',
+        };
+      
+        return (
+          <div style={wrapperStyle}>
+            <img
+              src="https://via.placeholder.com/150"
+              alt="Placeholder"
+              style={{
+                maxWidth: '100%',
+                height: 'auto',
+                borderRadius: '8px',
+              }}
+            />
+          </div>
+        );
+      }
+        
       case 'file':
         return (
           <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
@@ -241,34 +279,65 @@ const FormBuilder = () => {
             />
           </div>
         );
-      case 'table':
+      case 'table': {
+        const alignment = settings?.alignment || 'center'; // Default alignment fallback to 'center'
+      
+        const wrapperStyle = {
+          display: 'flex',
+          justifyContent:
+            alignment === 'left'
+              ? 'flex-start'
+              : alignment === 'center'
+              ? 'center'
+              : 'flex-end',
+          width: '100%',
+        };
+      
+        const tableStyle = {
+          margin: '0 auto', // Ensures table is centered when alignment is 'center'
+          borderCollapse: 'collapse',
+          width: '100%',
+        };
+      
         return (
-          <div style={alignmentStyle}>
-            <input
-              type="file"
-              accept=".csv"
-              onChange={(e) => handleCSVUpload(e, element.id)}
-              style={{ marginBottom: '10px' }}
-            />
-            <table style={{ textAlign: settings?.alignment || 'center', width: '100%' }}>
-              <tbody>
-                {settings.csvData
-                  ? settings.csvData.map((row, rowIndex) => (
+          <div style={wrapperStyle}>
+            <div>
+              <input
+                type="file"
+                accept=".csv"
+                onChange={(e) => handleCSVUpload(e, element.id)}
+                style={{ marginBottom: '10px' }}
+              />
+              <table style={tableStyle}>
+                <tbody>
+                  {settings.csvData ? (
+                    settings.csvData.map((row, rowIndex) => (
                       <tr key={rowIndex}>
                         {row.map((cell, cellIndex) => (
-                          <td key={cellIndex}>{cell}</td>
+                          <td
+                            key={cellIndex}
+                            style={{
+                              border: '1px solid #ddd',
+                              padding: '8px',
+                              textAlign: alignment, // Apply alignment to the text within cells
+                            }}
+                          >
+                            {cell}
+                          </td>
                         ))}
                       </tr>
                     ))
-                  : (
+                  ) : (
                     <tr>
-                      <td>Table Content</td>
+                      <td style={{ textAlign: 'center' }}>Table Content</td>
                     </tr>
                   )}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </div>
         );
+      }      
       case 'email':
         return (
           <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
@@ -376,10 +445,19 @@ const FormBuilder = () => {
             />
           </div>
         );
-        case 'password':
-          return (
-            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: settings?.alignment || 'center' }}>
-              {/* Password Input Field */}
+      case 'password':
+        return (
+          <div
+            style={{
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: settings?.alignment === 'left' ? 'flex-start' : settings?.alignment === 'right' ? 'flex-end' : 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {/* Password Input Field and Show Password Option */}
+            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: settings?.alignment === 'left' ? 'flex-start' : settings?.alignment === 'right' ? 'flex-end' : 'center', width: '100%' }}>
               <input
                 type={settings?.showPasswordOption && settings?.showPassword ? 'text' : 'password'}
                 placeholder={settings?.placeholder || 'Enter password'}
@@ -393,75 +471,33 @@ const FormBuilder = () => {
                   padding: '10px',
                   width: '300px', // Adjust the width as needed
                   border: settings?.isValid === false ? '2px solid #ff0000' : '1px solid #ced4da',
-                  textAlign: 'center', // Placeholder aligned to the left
-                  margin: '0', // Remove auto-centering from the input box itself
-                }}
-              />
-              {/* Show Password Option */}
-              {settings?.showPasswordOption && (
-                <div style={{ display: 'flex', alignItems: 'center', marginTop: '10px' }}>
-                  <input
-                    type="checkbox"
-                    checked={settings?.showPassword || false}
-                    onChange={(e) => updateElementSettings(element.id, { ...settings, showPassword: e.target.checked })}
-                  />
-                  <label style={{ marginLeft: '10px' }}>Show Password</label>
-                </div>
-              )}
-              {/* Password Requirements */}
-              <div style={{ marginTop: '10px', textAlign: 'center', width: '100%' }}>
-                {settings?.passwordLength && <p>Requires Minimum Length: {settings.passwordLength}</p>}
-                {settings?.requireSymbols && <p>Requires Symbols: Yes</p>}
-                {settings?.requireNumbers && <p>Requires Numbers: Yes</p>}
-              </div>
-              {/* Validation Error */}
-              {!settings?.isValid && settings?.isValid !== undefined && (
-                <span style={{ color: '#ff0000', fontSize: '1em', marginTop: '5px' }}>Password does not meet requirements</span>
-              )}
-            </div>
-          );
-        
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: settings?.alignment || 'center', width: '100%' }}>
-              <input
-                type={settings?.showPasswordOption && settings?.showPassword ? 'text' : 'password'}
-                placeholder={settings?.placeholder || 'Enter password'}
-                required={settings?.required}
-                onBlur={(e) => {
-                  const isValid = validatePassword(e.target.value, settings);
-                  updateElementSettings(element.id, { ...settings, isValid });
-                }}
-                style={{
-                  borderRadius: '8px',
-                  padding: '10px',
-                  width: '300px', // You can adjust the width as needed
-                  border: settings?.isValid === false ? '2px solid #ff0000' : '1px solid #ced4da',
                   textAlign: 'left', // Ensures the placeholder text stays aligned left
-                  margin: '0 auto' // Center the input box itself
+                  marginRight: '10px',
                 }}
               />
               {settings?.showPasswordOption && (
-                <label style={{ marginLeft: '10px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', marginLeft: '10px' }}>
                   <input
                     type="checkbox"
                     checked={settings?.showPassword || false}
                     onChange={(e) => updateElementSettings(element.id, { ...settings, showPassword: e.target.checked })}
+                    style={{ marginRight: '5px' }}
                   />
                   Show Password
                 </label>
               )}
             </div>
-            <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              {settings?.passwordLength && <p style={{ marginRight: '20px' }}>Requires Minimum Length: {settings.passwordLength}</p>}
-              {settings?.requireSymbols && <p style={{ marginRight: '20px' }}>Requires Symbols: Yes</p>}
+            {/* Password Requirements */}
+            <div style={{ marginTop: '10px', textAlign: settings?.alignment || 'center', width: '100%', display: 'flex', flexDirection: 'column', alignItems: settings?.alignment === 'left' ? 'flex-start' : settings?.alignment === 'right' ? 'flex-end' : 'center' }}>
+              {settings?.passwordLength && <p style={{ marginBottom: '5px' }}>Requires Minimum Length: {settings.passwordLength}</p>}
+              {settings?.requireSymbols && <p style={{ marginBottom: '5px' }}>Requires Symbols: Yes</p>}
               {settings?.requireNumbers && <p>Requires Numbers: Yes</p>}
             </div>
+            {/* Validation Error */}
             {!settings?.isValid && settings?.isValid !== undefined && (
               <span style={{ color: '#ff0000', fontSize: '0.8em', marginTop: '5px' }}>Password does not meet requirements</span>
             )}
           </div>
-
         );
       default:
         return (
