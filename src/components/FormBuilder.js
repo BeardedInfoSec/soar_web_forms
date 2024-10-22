@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect} from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { DndContext, DragOverlay, closestCenter } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, rectSortingStrategy } from '@dnd-kit/sortable';
 import Papa from 'papaparse';
@@ -31,13 +31,24 @@ const FormBuilder = () => {
   const [draftSettings, setDraftSettings] = useState(null);
   const [draggingElement, setDraggingElement] = useState(null);
   const formContainerRef = useRef(null);
+  const [selectedFileName, setSelectedFileName] = useState('')
   const SUBMIT_BUTTON_ID = 'submit-button';
 
-  useEffect(() => {
-    if (!formElements.some(el => el.id === SUBMIT_BUTTON_ID)) {
-      addSubmitButton(); // Add the submit button if it's missing
-    }
-  }, [formElements]);
+
+useEffect(() => {
+  console.log('Form Elements Updated:', formElements);
+  const tableElement = formElements.find((el) => el.type === 'table');
+  if (tableElement) {
+    console.log('Table Element Found:', tableElement);
+    console.log('CSV Data in State:', tableElement.settings.csvData);
+  }
+}, [formElements]);
+
+useEffect(() => {
+  if (!formElements.some(el => el.id === SUBMIT_BUTTON_ID)) {
+    addSubmitButton();
+  }
+}, [formElements]);
 
 const addSubmitButton = () => {
   setFormElements(prev => [
@@ -85,6 +96,7 @@ const addSubmitButton = () => {
         passwordLength: '',
         requireSymbols: false,
         requireNumbers: false,
+        csvData: []
       },
       required: false,
       textColor: '#ffffff',
@@ -117,6 +129,25 @@ const addSubmitButton = () => {
       .then(data => console.log('Form submission response:', data))
       .catch(error => console.error('Error submitting form:', error));
   };
+
+  const handleImageUpload = (event, elementId) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageSrc = e.target.result;
+        setFormElements((prev) =>
+          prev.map((el) =>
+            el.id === elementId
+              ? { ...el, settings: { ...el.settings, imageSrc } }
+              : el
+          )
+        );
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
   const saveForm = () => {
     if (!formName) {
       alert('Please enter a name for the form.');
@@ -156,7 +187,8 @@ const addSubmitButton = () => {
       showPasswordOption: element.settings?.showPasswordOption,
       passwordLength: element.settings?.passwordLength,
       requireSymbols: element.settings?.requireSymbols,
-      requireNumbers: element.settings?.requireNumbers
+      requireNumbers: element.settings?.requireNumbers,
+      csvData: element.settings?.csvData || []
     });
   };
   
@@ -185,30 +217,20 @@ const addSubmitButton = () => {
   const updateElementSettings = (id, newSettings) => {
     setFormElements((prev) =>
       prev.map((el) =>
-        el.id === id
+        el.id === id.toString()
           ? {
               ...el,
-              settings: newSettings,
-              label: newSettings.label,
-              alignment: newSettings.alignment,
-              required: newSettings.required,
-              placeholder: newSettings.placeholder,
-              isValid: newSettings.isValid,
-              useCurrentDate: newSettings.useCurrentDate,
-              defaultBoolean: newSettings.defaultBoolean,
-              min: newSettings.min,
-              max: newSettings.max,
-              step: newSettings.step,
-              defaultValue: newSettings.defaultValue,
-              showPasswordOption: newSettings.showPasswordOption,
-              passwordLength: newSettings.passwordLength,
-              requireSymbols: newSettings.requireSymbols,
-              requireNumbers: newSettings.requireNumbers
+              ...newSettings,
+              settings: {
+                ...el.settings,
+                ...newSettings,
+              },
             }
           : el
       )
     );
   };
+  
 
   const handleDragStart = ({ active }) => {
     setDraggingElement(active.id);
@@ -226,14 +248,29 @@ const addSubmitButton = () => {
   const handleCSVUpload = (event, elementId) => {
     const file = event.target.files[0];
     if (file) {
+      if (!file.name.endsWith('.csv')) {
+        alert('Please upload a valid .csv file.');
+        return;
+      }
+      setSelectedFileName(file.name); // Update the selected file name
       Papa.parse(file, {
         complete: (result) => {
           const csvData = result.data;
-          updateElementSettings(elementId, { ...draftSettings, csvData });
+          console.log('Parsed CSV Data:', csvData);
+  
+          setFormElements((prev) =>
+            prev.map((el) =>
+              el.id === elementId
+                ? { ...el, settings: { ...el.settings, csvData } }
+                : el
+            )
+          );
         },
+        header: false,
       });
     }
   };
+  
 
   const handleResetForm = () => {
     if (window.confirm('Are you sure you want to reset the form?')) {
@@ -340,64 +377,108 @@ const addSubmitButton = () => {
         );
       case 'divider':
         return <hr style={{ ...alignmentStyle, width: '100%' }} />;
-      case 'image':
-        return (
-          <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
-            <img
-              src="https://via.placeholder.com/150"
-              alt="Placeholder"
-              style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px' }}
-            />
-          </div>
-        );
-      case 'file':
-        return (
-          <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
-            <input
-              type="file"
-              onChange={(e) => handleCSVUpload(e, element.id)}
-              style={{
-                borderRadius: '8px',
-                padding: '10px',
-                border: '1px solid #ced4da',
-                textAlign: 'center',
-                ...alignmentStyle,
-              }}
-            />
-          </div>
-        );
-      case 'table':
-        return (
-          <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
-            <div>
-              <input
-                type="file"
-                accept=".csv"
-                onChange={(e) => handleCSVUpload(e, element.id)}
-                style={{ marginBottom: '10px' }}
-              />
-              <table style={{ margin: '0 auto', borderCollapse: 'collapse', width: '100%' }}>
-                <tbody>
-                  {settings.csvData ? (
-                    settings.csvData.map((row, rowIndex) => (
-                      <tr key={rowIndex}>
-                        {row.map((cell, cellIndex) => (
-                          <td key={cellIndex} style={{ border: '1px solid #ddd', padding: '8px' }}>
-                            {cell}
-                          </td>
-                        ))}
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td style={{ textAlign: 'center' }}>Table Content</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+        case 'image':
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+              <label className="custom-file-label">
+                Choose Image
+                <input
+                  type="file"
+                  className="custom-file-input"
+                  accept="image/*"
+                  onChange={(e) => handleImageUpload(e, element.id)}
+                />
+              </label>
+              {settings?.imageSrc ? (
+                <img
+                  src={settings.imageSrc}
+                  alt="Uploaded"
+                  style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px', marginTop: '10px' }}
+                />
+              ) : (
+                <img
+                  src="https://via.placeholder.com/150"
+                  alt="Placeholder"
+                  style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px', marginTop: '10px' }}
+                />
+              )}
             </div>
-          </div>
-        );
+          );
+        
+      case 'file':
+          return (
+            <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
+              <label className="custom-file-label">
+                Upload File
+                <input
+                  type="file"
+                  className="custom-file-input"
+                  onChange={(e) => handleCSVUpload(e, element.id)}
+                  accept=".csv"
+                />
+              </label>
+              <span className="file-name">No file chosen</span>
+            </div>
+          );
+      case 'table':
+          const tableData = element.settings?.csvData || [];
+          console.log('Rendering Table with Data:', tableData);
+    
+          return (
+            <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+              <div>
+                {/* Styled file input and label */}
+                <div style={{ marginBottom: '10px' }}>
+                  <input
+                    type="file"
+                    accept=".csv"
+                    id={`file-upload-${element.id}`}
+                    onChange={(e) => handleCSVUpload(e, element.id)}
+                    style={{ display: 'none' }} // Hide default input
+                  />
+                  <label
+                    htmlFor={`file-upload-${element.id}`}
+                    style={{
+                      backgroundColor: '#007bff',
+                      color: 'white',
+                      padding: '10px 20px',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      display: 'inline-block',
+                    }}
+                  >
+                    Upload CSV File
+                  </label>
+                  <span style={{ marginLeft: '10px' }}>
+                    {selectedFileName || 'No file chosen'}
+                  </span>
+                </div>
+    
+                <table style={{ margin: '0 auto', borderCollapse: 'collapse', width: '100%' }}>
+                  <tbody>
+                    {tableData.length > 0 ? (
+                      tableData.map((row, rowIndex) => (
+                        <tr key={`row-${rowIndex}`}>
+                          {row.map((cell, cellIndex) => (
+                            <td
+                              key={`cell-${rowIndex}-${cellIndex}`}
+                              style={{ border: '1px solid #ddd', padding: '8px' }}
+                            >
+                              {cell}
+                            </td>
+                          ))}
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td style={{ textAlign: 'center' }}>No Data Available</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          );
       case 'dateTime':
       return (
         <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>

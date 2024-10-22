@@ -290,3 +290,64 @@ body {
 .reset-form:hover {
   background: #c82333;
 }
+/* Hide the default file input */
+.custom-file-input {
+  display: none;
+}
+
+/* Styled label to act as the button */
+.custom-file-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  background-color: #007bff;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  gap: 10px;
+}
+
+/* Change background color on hover */
+.custom-file-label:hover {
+  background-color: #0056b3;
+}
+
+/* Filename styling */
+.file-name {
+  font-size: 14px;
+  color: white;
+  margin-left: 10px;
+}
+
+/* Custom styling for file label */
+.custom-file-input {
+  display: none;
+}
+
+.custom-file-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  background-color: #007bff;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 10px;
+}
+
+.custom-file-label:hover {
+  background-color: #0056b3;
+}
+
+.form-builder-container {
+  display: flex;
+  height: 100vh;
+}
