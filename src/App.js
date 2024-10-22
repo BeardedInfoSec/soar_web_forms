@@ -1,12 +1,14 @@
-import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import FormBuilder from './FormBuilder';
+import FormViewer from './FormViewer';
 
-function App() {
-  return (
-    <div className="App">
-      <FormBuilder />
-    </div>
-  );
-}
+const App = () => (
+  <Router>
+    <Routes>
+      <Route path="/" element={<FormBuilder />} />
+      <Route path="/:formName" element={<FormViewer />} />
+    </Routes>
+  </Router>
+);
 
 export default App;

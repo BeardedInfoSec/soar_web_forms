@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect} from 'react';
 import { DndContext, DragOverlay, closestCenter } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, rectSortingStrategy } from '@dnd-kit/sortable';
 import Papa from 'papaparse';
@@ -16,61 +16,132 @@ const ELEMENT_TYPES = [
 const INPUT_FIELDS = [
   { id: 'inputText', label: 'Input Text', type: 'text' },
   { id: 'email', label: 'Email', type: 'email' },
+  { id: 'password', label: 'Password', type: 'password' }, 
   { id: 'dateTime', label: 'Date or Time', type: 'datetime-local' },
   { id: 'boolean', label: 'Boolean', type: 'dropdown' },
   { id: 'number', label: 'Number', type: 'number' },
-  { id: 'file', label: 'File Upload', type: 'file' },
-  { id: 'password', label: 'Password', type: 'password' }
+  { id: 'file', label: 'File Upload', type: 'file' }
+
 ];
 
 const FormBuilder = () => {
   const [formElements, setFormElements] = useState([]);
+  const [formName, setFormName] = useState(''); // State to track form name
   const [selectedElement, setSelectedElement] = useState(null);
   const [draftSettings, setDraftSettings] = useState(null);
   const [draggingElement, setDraggingElement] = useState(null);
   const formContainerRef = useRef(null);
+  const SUBMIT_BUTTON_ID = 'submit-button';
 
+  useEffect(() => {
+    if (!formElements.some(el => el.id === SUBMIT_BUTTON_ID)) {
+      addSubmitButton(); // Add the submit button if it's missing
+    }
+  }, [formElements]);
+
+const addSubmitButton = () => {
+  setFormElements(prev => [
+    ...prev,
+    {
+      id: SUBMIT_BUTTON_ID,
+      type: 'button',
+      key: 'Submit',
+      label: 'Submit',
+      alignment: 'center',
+      required: false,
+      settings: {},
+    },
+  ]);
+};
+
+  const generateKey = (type) => {
+    const existingCount = formElements.filter((el) => el.type === type).length + 1;
+    return `${type} ${existingCount}`; // Example: "inputText 1"
+  };
+  
   const addElement = (type) => {
-    setFormElements((prev) => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        type,
-        label: type === 'heading' ? 'Heading' : type,
-        alignment: 'center',
-        settings: {
-          headerLevel: 'h1',
-          placeholder: type === 'email' ? 'Email Address' : 'Enter text here...',
-          placeholder: type === 'password' ? 'Enter password' : '',
-          useCurrentDate: false,
-          defaultBoolean: 'true',
-          min: '',
-          max: '',
-          step: '',
-          defaultValue: '',
-          showPasswordOption: false,
-          passwordLength: '',
-          requireSymbols: false,
-          requireNumbers: false
-        },
-        required: false,
-        textColor: '#ffffff',
-        fontFamily: 'Arial'
+    const newKey = generateKey(type); // Generate the key
+    const newElement = {
+      id: Date.now().toString(),
+      type,
+      key: newKey, // Assign the generated key
+      label: type === 'heading' ? 'Heading' : type,
+      alignment: 'center',
+      settings: {
+        headerLevel: 'h1',
+        placeholder:
+        type === 'email'
+          ? 'Email Address'
+          : type === 'password'
+          ? 'Enter password'
+          : 'Enter text here...',
+        useCurrentDate: false,
+        defaultBoolean: 'true',
+        min: '',
+        max: '',
+        step: '',
+        defaultValue: '',
+        showPasswordOption: false,
+        passwordLength: '',
+        requireSymbols: false,
+        requireNumbers: false,
       },
-    ]);
+      required: false,
+      textColor: '#ffffff',
+      fontFamily: 'Arial',
+    };
+  
+    // Ensure new elements are added before the Submit button
+    setFormElements((prev) => {
+      const submitIndex = prev.findIndex((el) => el.id === SUBMIT_BUTTON_ID);
+      const newFormElements = [...prev];
+      newFormElements.splice(submitIndex, 0, newElement); // Insert new element before submit button
+      return newFormElements;
+    });
   };
 
+  const isKeyUnique = (key) => {
+    return !formElements.some((el) => el.key === key && el.id !== selectedElement?.id);
+  };
+  const handleSubmit = () => {
+    const formData = formElements.filter(el => el.id !== SUBMIT_BUTTON_ID); // Exclude submit button from data
+    console.log('Form submitted:', formData);
+
+    // Example API call
+    fetch('/api/submit-form', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ elements: formData }),
+    })
+      .then(response => response.json())
+      .then(data => console.log('Form submission response:', data))
+      .catch(error => console.error('Error submitting form:', error));
+  };
+  const saveForm = () => {
+    if (!formName) {
+      alert('Please enter a name for the form.');
+      return;
+    }
+    const formData = { name: formName, elements: formElements };
+    localStorage.setItem(formName, JSON.stringify(formData));
+    alert(`Form "${formName}" saved successfully!`);
+  };
+
+
   const removeElement = (id) => {
-    setFormElements((prev) => prev.filter((el) => el.id !== id));
+    if (id === SUBMIT_BUTTON_ID) return; // Prevent deletion of the Submit button
+    setFormElements(prev => prev.filter(el => el.id !== id));
     if (selectedElement?.id === id) {
       setSelectedElement(null);
     }
   };
 
+
   const handleEditClick = (element) => {
     setSelectedElement(element);
     setDraftSettings({
       ...element.settings,
+      key: element.key || '',  // Populate the key value properly
       label: element.label,
       alignment: element.alignment,
       required: element.required,
@@ -88,14 +159,23 @@ const FormBuilder = () => {
       requireNumbers: element.settings?.requireNumbers
     });
   };
+  
 
   const applyDraftChanges = () => {
     if (selectedElement && draftSettings) {
-      updateElementSettings(selectedElement.id, draftSettings);
-      setSelectedElement(null);
-      setDraftSettings(null);
+      if (isKeyUnique(draftSettings.key)) {
+        updateElementSettings(selectedElement.id, {
+          ...draftSettings,
+          key: draftSettings.key,  // Update the key
+        });
+        setSelectedElement(null);
+        setDraftSettings(null);
+      } else {
+        alert('The key must be unique. Please choose another.');
+      }
     }
   };
+  
 
   const cancelChanges = () => {
     setSelectedElement(null);
@@ -177,167 +257,61 @@ const FormBuilder = () => {
   const renderElementContent = (element) => {
     const isBeingEdited = selectedElement?.id === element.id;
     const settings = isBeingEdited ? draftSettings : element.settings;
-
+  
     const alignmentStyle = {
       textAlign: settings?.alignment || 'center',
-
     };
-
+  
+    // Use the element key as the default label if the label isn't set
+    const displayLabel = settings?.label || element.key || element.label;
+  
     switch (element.type) {
       case 'heading': {
         const HeaderTag = settings?.headerLevel || 'h1';
         const alignmentStyle = { 
-          textAlign: settings?.alignment || 'center', // Ensure alignment is applied here
-          margin: 0 // Optional: Prevents extra margin which could affect layout
+          textAlign: settings?.alignment || 'center', 
+          width: '100%', 
+          margin: '0 auto'  // Ensures it's centered
         };
       
         return (
-          <div style={{ width: '100%', display: 'flex', justifyContent: settings?.alignment }}>
+          <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
             <HeaderTag style={alignmentStyle}>
               {settings?.label || element.label}
             </HeaderTag>
           </div>
         );
-      }
+      }      
       case 'text':
-        return <p style={alignmentStyle}>{settings?.label || element.label}</p>;
-      case 'divider':
-      return <hr style={{ ...alignmentStyle, width: '100%' }} />;
+        return <p style={alignmentStyle}>{displayLabel}</p>;
       case 'button':
         return (
-          <div
-            style={{
-              display: 'flex',
-              justifyContent:
-                settings?.alignment === 'left'
-                  ? 'flex-start'
-                  : settings?.alignment === 'center' || !settings?.alignment
-                  ? 'center'
-                  : 'flex-end',
-              width: '100%'
-            }}
-          >
+          <div style={{ display: 'flex', justifyContent: element.alignment || 'center', width: '100%' }}>
             <button
+              onClick={element.id === SUBMIT_BUTTON_ID ? handleSubmit : undefined} // Submit button triggers API
               className="custom-button"
-              style={{
-                backgroundColor: '#4285f4',
-                color: 'white',
-                border: 'none',
-                padding: '10px 20px',
-                fontSize: '16px',
-                cursor: 'pointer',
-                margin: '5px',
-                borderRadius: '6px',
-              }}
+              style={{ padding: '10px 20px', borderRadius: '6px', margin: '5px', backgroundColor: '#007bff', color: 'white' }}
             >
-              {settings?.label || element.label}
+              {element.label}
             </button>
           </div>
         );
-      case 'image': {
-        const alignment = settings?.alignment || 'center'; // Default to 'center'
-      
-        const wrapperStyle = {
-          display: 'flex',
-          justifyContent:
-            alignment === 'left'
-              ? 'flex-start'
-              : alignment === 'center'
-              ? 'center'
-              : 'flex-end',
-          width: '100%',
-        };
-      
-        return (
-          <div style={wrapperStyle}>
-            <img
-              src="https://via.placeholder.com/150"
-              alt="Placeholder"
-              style={{
-                maxWidth: '100%',
-                height: 'auto',
-                borderRadius: '8px',
-              }}
-            />
-          </div>
-        );
-      }
-        
-      case 'file':
+      case 'inputText':
         return (
           <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
             <input
-              type="file"
+              type="text"
+              placeholder={settings?.placeholder || displayLabel}
+              required={settings?.required}
               style={{
                 borderRadius: '8px',
                 padding: '10px',
                 border: '1px solid #ced4da',
                 textAlign: 'center',
-                ...alignmentStyle
               }}
-              onChange={(e) => handleCSVUpload(e, element.id)}
             />
           </div>
         );
-      case 'table': {
-        const alignment = settings?.alignment || 'center'; // Default alignment fallback to 'center'
-      
-        const wrapperStyle = {
-          display: 'flex',
-          justifyContent:
-            alignment === 'left'
-              ? 'flex-start'
-              : alignment === 'center'
-              ? 'center'
-              : 'flex-end',
-          width: '100%',
-        };
-      
-        const tableStyle = {
-          margin: '0 auto', // Ensures table is centered when alignment is 'center'
-          borderCollapse: 'collapse',
-          width: '100%',
-        };
-      
-        return (
-          <div style={wrapperStyle}>
-            <div>
-              <input
-                type="file"
-                accept=".csv"
-                onChange={(e) => handleCSVUpload(e, element.id)}
-                style={{ marginBottom: '10px' }}
-              />
-              <table style={tableStyle}>
-                <tbody>
-                  {settings.csvData ? (
-                    settings.csvData.map((row, rowIndex) => (
-                      <tr key={rowIndex}>
-                        {row.map((cell, cellIndex) => (
-                          <td
-                            key={cellIndex}
-                            style={{
-                              border: '1px solid #ddd',
-                              padding: '8px',
-                              textAlign: alignment, // Apply alignment to the text within cells
-                            }}
-                          >
-                            {cell}
-                          </td>
-                        ))}
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td style={{ textAlign: 'center' }}>Table Content</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
-      }      
       case 'email':
         return (
           <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
@@ -364,13 +338,75 @@ const FormBuilder = () => {
             )}
           </div>
         );
-      case 'inputText':
+      case 'divider':
+        return <hr style={{ ...alignmentStyle, width: '100%' }} />;
+      case 'image':
+        return (
+          <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
+            <img
+              src="https://via.placeholder.com/150"
+              alt="Placeholder"
+              style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px' }}
+            />
+          </div>
+        );
+      case 'file':
         return (
           <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
             <input
+              type="file"
+              onChange={(e) => handleCSVUpload(e, element.id)}
+              style={{
+                borderRadius: '8px',
+                padding: '10px',
+                border: '1px solid #ced4da',
+                textAlign: 'center',
+                ...alignmentStyle,
+              }}
+            />
+          </div>
+        );
+      case 'table':
+        return (
+          <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
+            <div>
+              <input
+                type="file"
+                accept=".csv"
+                onChange={(e) => handleCSVUpload(e, element.id)}
+                style={{ marginBottom: '10px' }}
+              />
+              <table style={{ margin: '0 auto', borderCollapse: 'collapse', width: '100%' }}>
+                <tbody>
+                  {settings.csvData ? (
+                    settings.csvData.map((row, rowIndex) => (
+                      <tr key={rowIndex}>
+                        {row.map((cell, cellIndex) => (
+                          <td key={cellIndex} style={{ border: '1px solid #ddd', padding: '8px' }}>
+                            {cell}
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td style={{ textAlign: 'center' }}>Table Content</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      case 'dateTime':
+      return (
+        <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
+          {settings?.useCurrentDate ? (
+
+            <input
               type="text"
-              placeholder={settings?.placeholder || 'Enter text here...'}
-              required={settings?.required}
+              value={new Date().toLocaleDateString('en-US')}
+              readOnly
               style={{
                 borderRadius: '8px',
                 padding: '10px',
@@ -378,36 +414,19 @@ const FormBuilder = () => {
                 textAlign: 'center'
               }}
             />
-          </div>
-        );
-      case 'dateTime':
-        return (
-          <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
-            {settings?.useCurrentDate ? (
-              <input
-                type="text"
-                value={new Date().toLocaleDateString('en-US')}
-                readOnly
-                style={{
-                  borderRadius: '8px',
-                  padding: '10px',
-                  border: '1px solid #ced4da',
-                  textAlign: 'center'
-                }}
-              />
-            ) : (
-              <input
-                type="date"
-                style={{
-                  borderRadius: '8px',
-                  padding: '10px',
-                  border: '1px solid #ced4da',
-                  textAlign: 'center'
-                }}
-              />
-            )}
-          </div>
-        );
+          ) : (
+            <input
+              type="date"
+              style={{
+                borderRadius: '8px',
+                padding: '10px',
+                border: '1px solid #ced4da',
+                textAlign: 'center'
+              }}
+            />
+          )}
+        </div>
+      );
       case 'boolean':
         return (
           <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
@@ -425,7 +444,7 @@ const FormBuilder = () => {
               <option value="false">False</option>
             </select>
           </div>
-        );
+        );      
       case 'number':
         return (
           <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
@@ -446,71 +465,73 @@ const FormBuilder = () => {
           </div>
         );
       case 'password':
-        return (
-          <div
-            style={{
-              width: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: settings?.alignment === 'left' ? 'flex-start' : settings?.alignment === 'right' ? 'flex-end' : 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {/* Password Input Field and Show Password Option */}
-            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: settings?.alignment === 'left' ? 'flex-start' : settings?.alignment === 'right' ? 'flex-end' : 'center', width: '100%' }}>
-              <input
-                type={settings?.showPasswordOption && settings?.showPassword ? 'text' : 'password'}
-                placeholder={settings?.placeholder || 'Enter password'}
-                required={settings?.required}
-                onBlur={(e) => {
-                  const isValid = validatePassword(e.target.value, settings);
-                  updateElementSettings(element.id, { ...settings, isValid });
-                }}
-                style={{
-                  borderRadius: '8px',
-                  padding: '10px',
-                  width: '300px', // Adjust the width as needed
-                  border: settings?.isValid === false ? '2px solid #ff0000' : '1px solid #ced4da',
-                  textAlign: 'left', // Ensures the placeholder text stays aligned left
-                  marginRight: '10px',
-                }}
-              />
-              {settings?.showPasswordOption && (
-                <label style={{ display: 'flex', alignItems: 'center', marginLeft: '10px' }}>
-                  <input
-                    type="checkbox"
-                    checked={settings?.showPassword || false}
-                    onChange={(e) => updateElementSettings(element.id, { ...settings, showPassword: e.target.checked })}
-                    style={{ marginRight: '5px' }}
-                  />
-                  Show Password
-                </label>
-              )}
-            </div>
-            {/* Password Requirements */}
-            <div style={{ marginTop: '10px', textAlign: settings?.alignment || 'center', width: '100%', display: 'flex', flexDirection: 'column', alignItems: settings?.alignment === 'left' ? 'flex-start' : settings?.alignment === 'right' ? 'flex-end' : 'center' }}>
-              {settings?.passwordLength && <p style={{ marginBottom: '5px' }}>Requires Minimum Length: {settings.passwordLength}</p>}
-              {settings?.requireSymbols && <p style={{ marginBottom: '5px' }}>Requires Symbols: Yes</p>}
-              {settings?.requireNumbers && <p>Requires Numbers: Yes</p>}
-            </div>
-            {/* Validation Error */}
-            {!settings?.isValid && settings?.isValid !== undefined && (
-              <span style={{ color: '#ff0000', fontSize: '0.8em', marginTop: '5px' }}>Password does not meet requirements</span>
+      return (
+        <div
+          style={{
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: settings?.alignment === 'left' ? 'flex-start' : settings?.alignment === 'right' ? 'flex-end' : 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {/* Password Input Field and Show Password Option */}
+          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: settings?.alignment === 'left' ? 'flex-start' : settings?.alignment === 'right' ? 'flex-end' : 'center', width: '100%' }}>
+            <input
+              type={settings?.showPasswordOption && settings?.showPassword ? 'text' : 'password'}
+              placeholder={settings?.placeholder || 'Enter password'}
+              required={settings?.required}
+              onBlur={(e) => {
+                const isValid = validatePassword(e.target.value, settings);
+                updateElementSettings(element.id, { ...settings, isValid });
+              }}
+              style={{
+                borderRadius: '8px',
+                padding: '10px',
+                width: '300px', // Adjust the width as needed
+                border: settings?.isValid === false ? '2px solid #ff0000' : '1px solid #ced4da',
+                textAlign: 'left', // Ensures the placeholder text stays aligned left
+                marginRight: '10px',
+              }}
+            />
+            {settings?.showPasswordOption && (
+              <label style={{ display: 'flex', alignItems: 'center', marginLeft: '10px' }}>
+                <input
+                  type="checkbox"
+                  checked={settings?.showPassword || false}
+                  onChange={(e) => updateElementSettings(element.id, { ...settings, showPassword: e.target.checked })}
+                  style={{ marginRight: '5px' }}
+                />
+                Show Password
+              </label>
             )}
           </div>
-        );
+          {/* Password Requirements */}
+          <div style={{ marginTop: '10px', textAlign: settings?.alignment || 'center', width: '100%', display: 'flex', flexDirection: 'column', alignItems: settings?.alignment === 'left' ? 'flex-start' : settings?.alignment === 'right' ? 'flex-end' : 'center' }}>
+            {settings?.passwordLength && <p style={{ marginBottom: '5px' }}>Requires Minimum Length: {settings.passwordLength}</p>}
+            {settings?.requireSymbols && <p style={{ marginBottom: '5px' }}>Requires Symbols: Yes</p>}
+            {settings?.requireNumbers && <p>Requires Numbers: Yes</p>}
+          </div>
+          {/* Validation Error */}
+          {!settings?.isValid && settings?.isValid !== undefined && (
+            <span style={{ color: '#ff0000', fontSize: '0.8em', marginTop: '5px' }}>Password does not meet requirements</span>
+          )}
+        </div>
+      );
       default:
         return (
           <input
             type={element.type}
-            placeholder={settings?.placeholder || element.label}
+            placeholder={settings?.placeholder || displayLabel}
             required={settings?.required}
             style={alignmentStyle}
           />
         );
     }
   };
+  
 
+  
   const areRequiredFieldsFilled = () => {
     return formElements.every((el) => {
       if (el.required) {
@@ -523,6 +544,25 @@ const FormBuilder = () => {
   return (
     <div className="form-builder-container" style={{ height: '100vh', overflow: 'hidden' }}>
       <div className="sidebar">
+                {/* Form Name Input */}
+                <div style={{ marginBottom: '10px' }}>
+          <label htmlFor="form-name" style={{ display: 'block', marginBottom: '5px', color: 'white' }}>
+            Form Name:
+          </label>
+          <input
+            id="form-name"
+            type="text"
+            value={formName}
+            onChange={(e) => setFormName(e.target.value)}
+            placeholder="Enter form name"
+            style={{
+              width: '100%',
+              padding: '10px',
+              borderRadius: '6px',
+              border: '1px solid #ced4da',
+            }}
+          />
+        </div>
         <div className="element-selector">
           <h3>Elements</h3>
           {ELEMENT_TYPES.map((element) => (
@@ -535,7 +575,6 @@ const FormBuilder = () => {
             </button>
           ))}
         </div>
-
         <div className="input-selector">
           <h3>Input Fields</h3>
           {INPUT_FIELDS.map((input) => (
@@ -548,7 +587,6 @@ const FormBuilder = () => {
             </button>
           ))}
         </div>
-
         <button
           onClick={handleResetForm}
           className="reset-form-button custom-button"
@@ -567,6 +605,26 @@ const FormBuilder = () => {
         >
           Reset Form
         </button>
+        {/* Save Form Button */}
+        <button
+          onClick={saveForm} // Use the saveForm function directly
+          className="save-form-button custom-button"
+          style={{
+            backgroundColor: '#4CAF50',
+            color: 'white',
+            border: 'none',
+            padding: '10px 20px',
+            textAlign: 'center',
+            fontSize: '16px',
+            cursor: 'pointer',
+            margin: '10px 0',
+            borderRadius: '6px',
+            width: '100%',
+          }}
+        >
+          Save Form
+        </button>
+
       </div>
 
       <div className="form-builder" ref={formContainerRef} style={{ height: '100%', overflowY: 'auto' }}>
@@ -598,6 +656,17 @@ const FormBuilder = () => {
       {selectedElement && (
         <div className="element-editor">
           <h3>Edit Element</h3>
+          
+          <label>
+          Key:
+          <input
+            type="text"
+            value={draftSettings?.key || ''}
+            onChange={(e) =>
+              setDraftSettings((prev) => ({ ...prev, key: e.target.value }))
+            }
+           />
+          </label>
           <label>
             Label:
             <input
