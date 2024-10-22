@@ -1,0 +1,44 @@
+/* src/components/ViewForms.css */
+.view-forms-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-color: #1a1a1a;
+    min-height: 100vh;
+  }
+  
+  h2 {
+    color: white;
+    margin-bottom: 20px;
+    font-size: 2rem;
+  }
+  
+  .form-list {
+    list-style: none;
+    padding: 0;
+    width: 80%;
+    max-width: 600px;
+  }
+  
+  .form-item {
+    margin: 10px 0;
+  }
+  
+  .form-button {
+    width: 100%;
+    background-color: #2e2e2e;
+    color: white;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+  }
+  
+  .form-button:hover {
+    background-color: #4285f4;
+    transform: translateY(-3px);
+  }
+  

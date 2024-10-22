@@ -1,10 +1,9 @@
 // src/components/ViewForms.js
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import './ViewForms.css'; // Styling for improved list layout
 
 const ViewForms = () => {
   const [forms, setForms] = useState([]);
-  const navigate = useNavigate(); // Use navigate for programmatic navigation
 
   useEffect(() => {
     const savedForms = Object.keys(localStorage).map((key) => ({
@@ -15,16 +14,17 @@ const ViewForms = () => {
   }, []);
 
   const openForm = (formName) => {
-    navigate(`/forms/${formName}`); // Navigate to the form's URL
+    const url = `/forms/${formName}`;
+    window.open(url, '_blank');
   };
 
   return (
-    <div>
+    <div className="view-forms-container">
       <h2>View Forms</h2>
-      <ul>
+      <ul className="form-list">
         {forms.map((form) => (
-          <li key={form.name}>
-            <button onClick={() => openForm(form.name)}>
+          <li key={form.name} className="form-item">
+            <button className="form-button" onClick={() => openForm(form.name)}>
               {form.name}
             </button>
           </li>
