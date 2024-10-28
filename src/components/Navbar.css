@@ -1,66 +1,37 @@
 .navbar {
-    background-color: #333;
-    padding: 10px;
-  }
-  
-  .navbar ul {
-    list-style-type: none;
-    display: flex;
-    gap: 10px;
-  }
-  
-  .navbar a {
-    color: white;
-    text-decoration: none;
-  }
-  
-  .navbar a.active {
-    font-weight: bold;
-    text-decoration: underline;
-  }
-  
-  .navbar {
-    background-color: #007bff;
-    padding: 10px;
-  }
-  
-  .navbar a {
-    color: white;
-    margin: 0 10px;
-    text-decoration: none;
-  }
-  .configuration-container {
-  margin: auto;
-  max-width: 600px;
-  background-color: #2c2c2c;
-  border-radius: 10px;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  color: #ffffff;
+  background-color: #007bff; /* Keeps your desired color */
+  padding: 5px 15px; /* Adjusts padding to make the navbar slimmer */
+  font-size: 0.9em; /* Reduces the text size slightly */
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); /* Adds a subtle shadow */
 }
 
-textarea {
-  width: 100%;
-  min-height: 150px;
-  border-radius: 6px;
-  border: 1px solid #ced4da;
-  background-color: #333;
-  color: #ffffff;
-  padding: 10px;
-  margin-bottom: 15px;
-}
-
-button {
-  width: 48%;
-  margin: 5px 1%;
-}
-
-.checkbox-container {
+.navbar ul {
+  list-style-type: none;
   display: flex;
-  align-items: center;
-  margin-top: 10px;
+  gap: 8px; /* Reduces spacing between menu items */
+  padding: 0; /* Removes default padding */
+  margin: 0; /* Ensures the navbar stays compact */
 }
 
-.checkbox-container input {
-  margin-left: 5px;
+.navbar a {
+  color: white;
+  text-decoration: none;
+  padding: 5px 10px; /* Slight padding for links */
+  border-radius: 4px; /* Rounded corners for a sleeker look */
+  transition: background-color 0.3s; /* Smooth background transition */
+}
+
+.navbar a:hover {
+  background-color: #0056b3; /* Darker background on hover */
+}
+
+.navbar a.active {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+/* Optional: Center the navigation */
+.navbar ul {
+  justify-content: left;
+  width: 100%;
 }

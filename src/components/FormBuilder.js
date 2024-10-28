@@ -27,11 +27,13 @@ const INPUT_FIELDS = [
 const FormBuilder = () => {
   const [formElements, setFormElements] = useState([]);
   const [formName, setFormName] = useState(''); // State to track form name
+  const [formLabel, setFormLabel] = useState(''); // New required label field
+  const [formTags, setFormTags] = useState(''); // New optional tags field
   const [selectedElement, setSelectedElement] = useState(null);
   const [draftSettings, setDraftSettings] = useState(null);
   const [draggingElement, setDraggingElement] = useState(null);
   const formContainerRef = useRef(null);
-  const [selectedFileName, setSelectedFileName] = useState('')
+  const [selectedFileName, setSelectedFileName] = useState('');
   const SUBMIT_BUTTON_ID = 'submit-button';
 
 
@@ -153,12 +155,39 @@ const addSubmitButton = () => {
       alert('Please enter a name for the form.');
       return;
     }
-    const formData = { name: formName, elements: formElements };
-    localStorage.setItem(formName, JSON.stringify(formData));
+  
+    const formData = {
+      name: formName,
+      label: formLabel,
+      tags: formTags ? formTags.split(',').map(tag => tag.trim()) : [], // Split tags by comma
+      elements: formElements,
+    };
+  
+    const convertToXML = (obj) => {
+      let xml = '';
+    
+      for (let key in obj) {
+        if (Array.isArray(obj[key])) {
+          xml += `<${key}>`;
+          obj[key].forEach((element) => {
+            xml += `<element>${convertToXML(element)}</element>`;
+          });
+          xml += `</${key}>`;
+        } else if (typeof obj[key] === 'object') {
+          xml += `<${key}>${convertToXML(obj[key])}</${key}>`;
+        } else {
+          xml += `<${key}>${obj[key]}</${key}>`;
+        }
+      }
+    
+      return xml;
+    };
+    
+    const xmlData = `<form>${convertToXML(formData)}</form>`;
+    localStorage.setItem(formName, xmlData);
     alert(`Form "${formName}" saved successfully!`);
   };
-
-
+  
   const removeElement = (id) => {
     if (id === SUBMIT_BUTTON_ID) return; // Prevent deletion of the Submit button
     setFormElements(prev => prev.filter(el => el.id !== id));
@@ -611,8 +640,6 @@ const addSubmitButton = () => {
     }
   };
   
-
-  
   const areRequiredFieldsFilled = () => {
     return formElements.every((el) => {
       if (el.required) {
@@ -636,6 +663,25 @@ const addSubmitButton = () => {
             value={formName}
             onChange={(e) => setFormName(e.target.value)}
             placeholder="Enter form name"
+            style={{
+              width: '100%',
+              padding: '10px',
+              borderRadius: '6px',
+              border: '1px solid #ced4da',
+            }}
+          />
+        </div>
+                {/* Label Input (Required) */}
+                <div style={{ marginBottom: '10px' }}>
+          <label htmlFor="form-label" style={{ display: 'block', marginBottom: '5px', color: 'white' }}>
+            Label (Required):
+          </label>
+          <input
+            id="form-label"
+            type="text"
+            value={formLabel}
+            onChange={(e) => setFormLabel(e.target.value)}
+            placeholder="Enter form label"
             style={{
               width: '100%',
               padding: '10px',
