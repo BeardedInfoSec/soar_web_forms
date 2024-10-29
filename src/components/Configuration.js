@@ -1,37 +1,35 @@
 import React, { useState } from 'react';
 
 const Configuration = () => {
-  const [url, setUrl] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [sslVerification, setSslVerification] = useState(false);
+  const [jsonConfig, setJsonConfig] = useState(''); // JSON input state
+  const [sslVerification, setSslVerification] = useState(true); // SSL checkbox state
   const [connectionStatus, setConnectionStatus] = useState('');
 
   const saveConfiguration = () => {
-    const config = {
-      url,
-      username,
-      password,
-      sslVerification,
-    };
-
-    localStorage.setItem('soarConfig', JSON.stringify(config));
-    alert('Configuration saved successfully!');
+    try {
+      const parsedConfig = JSON.parse(jsonConfig);
+      const configWithSSL = { ...parsedConfig, sslVerification };
+      localStorage.setItem('soarConfig', JSON.stringify(configWithSSL));
+      alert('Configuration saved successfully!');
+    } catch (error) {
+      alert('Invalid JSON. Please check your input.');
+      console.error('JSON parsing error:', error);
+    }
   };
 
   const testConnection = async () => {
     setConnectionStatus('Testing connection...');
-  
-    const config = JSON.parse(localStorage.getItem('soarConfig')) || {};
-    const { url, username, password, sslVerification } = config;
-  
+
     try {
+      const config = JSON.parse(localStorage.getItem('soarConfig')) || {};
+      const { url, username, password, sslVerification } = config;
+
       const apiUrl = sslVerification
         ? `${url}/rest/version`
         : `http://localhost:3001/proxy/rest/version`;
-  
+
       console.log('Sending request to', apiUrl);
-  
+
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
@@ -40,7 +38,7 @@ const Configuration = () => {
         },
         mode: 'cors',
       });
-  
+
       if (response.status === 200) {
         const data = await response.json();
         setConnectionStatus(`Connection successful: Version ${data.version}`);
@@ -52,7 +50,7 @@ const Configuration = () => {
       setConnectionStatus(`Connection failed: ${error.message}`);
     }
   };
-  
+
   return (
     <div
       style={{
@@ -75,66 +73,34 @@ const Configuration = () => {
       >
         <h2 style={{ color: 'white', marginBottom: '20px' }}>Configuration</h2>
 
-        <div style={{ marginBottom: '10px' }}>
-          <label style={{ color: 'white' }}>SOAR URL/IP:</label>
-          <input
-            type="text"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://<SOAR_IP>"
-            style={{
-              width: '100%',
-              padding: '10px',
-              borderRadius: '8px',
-              border: '1px solid #ced4da',
-              marginTop: '5px',
-            }}
-          />
-        </div>
+        <textarea
+          value={jsonConfig}
+          onChange={(e) => setJsonConfig(e.target.value)}
+          placeholder='Enter JSON configuration here...'
+          style={{
+            width: '100%',
+            height: '200px',
+            padding: '10px',
+            borderRadius: '8px',
+            border: '1px solid #ced4da',
+            marginTop: '5px',
+            marginBottom: '10px',
+            backgroundColor: '#1a1a1a',
+            color: 'white',
+          }}
+        />
 
-        <div style={{ marginBottom: '10px' }}>
-          <label style={{ color: 'white' }}>Username:</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '10px',
-              borderRadius: '8px',
-              border: '1px solid #ced4da',
-              marginTop: '5px',
-            }}
-          />
-        </div>
-
-        <div style={{ marginBottom: '10px' }}>
-          <label style={{ color: 'white' }}>Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '10px',
-              borderRadius: '8px',
-              border: '1px solid #ced4da',
-              marginTop: '5px',
-            }}
-          />
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
           <input
             type="checkbox"
-            checked={sslVerification}
-            onChange={(e) => setSslVerification(e.target.checked)}
+            checked={!sslVerification}
+            onChange={(e) => setSslVerification(!e.target.checked)}
             style={{ marginRight: '10px' }}
           />
           <label style={{ color: 'white' }}>Disable SSL Verification</label>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
           <button
             onClick={saveConfiguration}
             style={{
