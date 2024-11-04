@@ -9,15 +9,16 @@ const ELEMENT_TYPES = [
   { id: 'text', label: 'Text' },
   { id: 'divider', label: 'Divider' },
   { id: 'button', label: 'Button' },
-  { id: 'image', label: 'Image' },
+  //{ id: 'image', label: 'Image' },
   { id: 'table', label: 'Table' }
 ];
 
 const INPUT_FIELDS = [
   { id: 'inputText', label: 'Input Text', type: 'text' },
   { id: 'email', label: 'Email', type: 'email' },
-  { id: 'password', label: 'Password', type: 'password' }, 
+  //{ id: 'password', label: 'Password', type: 'password' }, 
   { id: 'dateTime', label: 'Date or Time', type: 'datetime-local' },
+  { id: 'dropdown', label: 'Dropdown', type: 'dropdown' },
   { id: 'boolean', label: 'Boolean', type: 'dropdown' },
   { id: 'number', label: 'Number', type: 'number' },
   { id: 'file', label: 'File Upload', type: 'file' }
@@ -90,6 +91,7 @@ const addSubmitButton = () => {
           : 'Enter text here...',
         useCurrentDate: false,
         defaultBoolean: 'true',
+        dropdownOptions: [],
         min: '',
         max: '',
         step: '',
@@ -168,11 +170,19 @@ const addSubmitButton = () => {
     
       for (let key in obj) {
         if (Array.isArray(obj[key])) {
-          xml += `<${key}>`;
-          obj[key].forEach((element) => {
-            xml += `<element>${convertToXML(element)}</element>`;
-          });
-          xml += `</${key}>`;
+          if (key === 'dropdownOptions') {
+            xml += `<${key}>`;
+            obj[key].forEach((option) => {
+              xml += `<option>${option}</option>`;
+            });
+            xml += `</${key}>`;
+          } else {
+            xml += `<${key}>`;
+            obj[key].forEach((element) => {
+              xml += `<element>${convertToXML(element)}</element>`;
+            });
+            xml += `</${key}>`;
+          }
         } else if (typeof obj[key] === 'object') {
           xml += `<${key}>${convertToXML(obj[key])}</${key}>`;
         } else {
@@ -182,6 +192,8 @@ const addSubmitButton = () => {
     
       return xml;
     };
+    
+    
     
     const xmlData = `<form>${convertToXML(formData)}</form>`;
     localStorage.setItem(formName, xmlData);
@@ -217,7 +229,7 @@ const addSubmitButton = () => {
       passwordLength: element.settings?.passwordLength,
       requireSymbols: element.settings?.requireSymbols,
       requireNumbers: element.settings?.requireNumbers,
-      csvData: element.settings?.csvData || []
+      csvData: element.settings?.csvData || [],
     });
   };
   
@@ -536,7 +548,28 @@ const addSubmitButton = () => {
             />
           )}
         </div>
-      );
+      );    
+      case 'dropdown':
+        return (
+          <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+            <select
+              style={{
+                borderRadius: '8px',
+                padding: '10px',
+                border: '1px solid #ced4da',
+                textAlign: 'center',
+              }}
+            >
+              <option value="">Select an option</option>
+              {settings?.dropdownOptions?.map((option, idx) => (
+                <option key={idx} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+        );
+      
       case 'boolean':
         return (
           <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
@@ -862,6 +895,63 @@ const addSubmitButton = () => {
               />
             </label>
           )}
+          {selectedElement.type === 'dropdown' && (
+          <>
+            <label>Dropdown Options:</label>
+            {draftSettings?.dropdownOptions?.map((option, idx) => (
+              <div key={idx} style={{ display: 'flex', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  value={option}
+                  onChange={(e) =>
+                    setDraftSettings((prev) => {
+                      const updatedOptions = [...prev.dropdownOptions];
+                      updatedOptions[idx] = e.target.value;
+                      return { ...prev, dropdownOptions: updatedOptions };
+                    })
+                  }
+                />
+                <button
+                  onClick={() =>
+                    setDraftSettings((prev) => ({
+                      ...prev,
+                      dropdownOptions: prev.dropdownOptions.filter((_, i) => i !== idx),
+                    }))
+                  }
+                  style={{
+                    marginLeft: '10px',
+                    padding: '5px 10px',
+                    color: 'white',
+                    backgroundColor: 'red',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+            <button
+              onClick={() =>
+                setDraftSettings((prev) => ({
+                  ...prev,
+                  dropdownOptions: [...(prev.dropdownOptions || []), ''],
+                }))
+              }
+              style={{
+                marginTop: '10px',
+                padding: '5px 10px',
+                color: 'white',
+                backgroundColor: 'green',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              Add Option
+            </button>
+          </>
+        )}
+
           {selectedElement.type === 'boolean' && (
             <label>
               Default Boolean Value:

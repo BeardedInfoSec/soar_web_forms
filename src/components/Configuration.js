@@ -19,27 +19,28 @@ const Configuration = () => {
 
   const testConnection = async () => {
     setConnectionStatus('Testing connection...');
-
+  
     try {
       const config = JSON.parse(localStorage.getItem('soarConfig')) || {};
-      const { url, username, password, sslVerification } = config;
-
-      const apiUrl = sslVerification
-        ? `${url}/rest/version`
-        : `http://localhost:3001/proxy/rest/version`;
-
+      const { server, 'ph-auth-token': authToken } = config;
+  
+      if (!server || !authToken) {
+        throw new Error('Missing server URL or auth token in configuration');
+      }
+  
+      const apiUrl = `${server}/rest/version`;
       console.log('Sending request to', apiUrl);
-
+  
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
-          Authorization: `Basic ${btoa(`${username}:${password}`)}`,
+          'ph-auth-token': authToken, // Use ph-auth-token header
           'Content-Type': 'application/json',
         },
         mode: 'cors',
       });
-
-      if (response.status === 200) {
+  
+      if (response.ok) {
         const data = await response.json();
         setConnectionStatus(`Connection successful: Version ${data.version}`);
       } else {
@@ -50,6 +51,7 @@ const Configuration = () => {
       setConnectionStatus(`Connection failed: ${error.message}`);
     }
   };
+  
 
   return (
     <div
