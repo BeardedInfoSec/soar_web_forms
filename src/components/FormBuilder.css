@@ -1,11 +1,10 @@
 /* General Styling for Form Builder */
-
 body {
-  font-family: Arial, sans-serif;
-  background-color: #121212;
+  font-family: 'Splunk Web', Arial, sans-serif;
+  background-color: #0c0c0e; /* Matches Splunk's dark theme */
   margin: 0;
   padding: 0;
-  color: #e0e0e0;
+  color: #d8d8d8;
   height: 100vh;
   overflow: hidden;
 }
@@ -16,34 +15,79 @@ body {
   padding: 20px;
   height: 100%;
   box-sizing: border-box;
-  background-color: #121212;
+  background-color: #0c0c0e;
 }
 
-.element-input-selector {
-  background: #111214;
-  padding: 15px;
-  border-radius: 4px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-  max-width: 300px;
-  width: 100%;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-  height: calc(100% - 40px);
-  overflow-y: auto;
+.sidebar {
+  background-color: #1c1e22; /* Dark background for the sidebar */
+  padding: 20px;
+  width: 250px;
+  border-right: 1px solid #333;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
-.element-input-selector h3 {
-  margin: 0;
-  margin-bottom: 10px;
-  color: #e0e0e0;
-  font-size: 1em;
+.sidebar h3 {
+  margin: 0 0 15px 0;
+  color: #f0f0f5;
+  font-size: 1.2em;
   border-bottom: 1px solid #333;
   padding-bottom: 5px;
-  text-align: left;
+}
+
+.sidebar label {
+  display: block;
+  color: #f0f0f5;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.sidebar input[type="text"],
+.sidebar select {
+  max-width: 280px;
+  width: 90%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background-color: #26282c;
+  color: #f0f0f5;
+  margin-bottom: 15px;
+}
+
+.element-selector,
+.input-selector {
+  background-color: #1c1e22;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+  margin-bottom: 15px;
+}
+
+.form-input {
   width: 100%;
-  grid-column: span 2;
-  padding-left: 10px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background-color: #26282c;
+  color: #f0f0f5;
+  margin-bottom: 10px;
+  font-size: 1em;
+}
+
+.load-form-button {
+  background-color: #5bc0de;
+  color: #f0f0f5;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+  font-size: 1em;
+  transition: background-color 0.3s;
+}
+
+.load-form-button:hover {
+  background-color: #31b0d5; /* Darker shade for hover */
 }
 
 .element-button,
@@ -52,60 +96,90 @@ body {
   align-items: center;
   justify-content: center;
   width: 100%;
-  padding: 15px;
-  background: #2a2a2a;
-  color: #e0e0e0;
-  border: 1px solid #333;
-  border-radius: 4px;
+  padding: 12px;
+  background-color: #26282c;
+  color: #f0f0f5;
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background 0.3s, transform 0.2s;
-  margin: 5px;
+  font-size: 1em;
+  transition: background-color 0.3s, transform 0.2s;
+  margin-bottom: 10px;
 }
 
 .element-button:hover,
 .input-button:hover {
-  background: #333;
-  transform: scale(1.05);
+  background-color: #2e3035;
+  transform: scale(1.03);
 }
 
-/* Background Styling for Form Builder */
+.reset-form-button,
+.save-form-button {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background-color: #d9534f; /* Splunk's danger color */
+  color: #f0f0f5;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.1em;
+  transition: background-color 0.3s;
+  margin-bottom: 15px;
+}
+
+.reset-form-button:hover {
+  background-color: #c9302c;
+}
+
+.save-form-button {
+  background-color: #5cb85c; /* Splunk's success color */
+}
+
+.save-form-button:hover {
+  background-color: #4cae4c;
+}
+
 .form-builder {
-  flex-grow: 1;
-  background: #111214;
+  flex: 1;
+  background: #0c0c0e;
   padding: 20px;
-  border-radius: 4px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-  background-image: radial-gradient(#222 1px, transparent 1px);
-  background-size: 20px 20px;
-  height: calc(100% - 40px);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   overflow-y: auto;
 }
 
 .form-preview {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  background: #111214;
-  padding: 15px;
-  border-radius: 4px;
+  gap: 15px;
+  background-color: #1c1e22;
+  padding: 20px;
+  border-radius: 8px;
   border: 1px solid #333;
 }
 
 .form-element {
-  background: #2a2a2a;
+  background-color: #26282c;
   padding: 15px;
   border: 1px solid #333;
-  border-radius: 4px;
+  border-radius: 8px;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  transition: background-color 0.3s;
+}
+
+.form-element:hover {
+  background-color: #2e3035;
 }
 
 .form-element p {
   margin: 0;
   flex-grow: 1;
-  color: #e0e0e0;
+  color: #f0f0f5;
+  font-size: 1em;
 }
 
 .drag-handle {
@@ -114,283 +188,160 @@ body {
   justify-content: center;
   width: 25px;
   height: 25px;
-  background: #007bff;
+  background-color: #0275d8;
   color: #ffffff;
   border-radius: 50%;
-  cursor: move;
-  transition: background 0.3s;
+  cursor: grab;
+  transition: background-color 0.3s;
 }
 
 .drag-handle:hover {
-  background: #0056b3;
+  background-color: #025aa5;
 }
 
 .dragging-overlay {
   padding: 10px;
-  background: #007bff;
+  background-color: #0275d8;
   color: #ffffff;
   border-radius: 4px;
 }
 
 .element-editor {
-  background: #111214;
-  padding: 15px;
-  border-radius: 4px;
+  background-color: #1c1e22;
+  padding: 20px;
+  border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-  max-width: 350px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
   height: calc(100% - 40px);
   overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.element-editor h3 {
-  margin: 0;
-  color: #e0e0e0;
-  font-size: 1em;
 }
 
 .element-editor label {
   display: block;
   font-weight: bold;
   margin-bottom: 5px;
-  color: #e0e0e0;
+  color: #f0f0f5;
 }
 
 .element-editor input,
+.element-editor select,
 .element-editor textarea {
-  width: 100%;
-  padding: 8px;
+  max-width: 90%; /* Adjusts the maximum width */
+  padding: 10px;
   margin-top: 5px;
-  border: 1px solid #333;
+  border: 1px solid #444;
   border-radius: 4px;
-  font-size: 0.9em;
-  background: #121212;
-  color: #e0e0e0;
+  font-size: 1em;
+  background-color: #26282c;
+  color: #f0f0f5;
+  margin-bottom: 15px;
 }
 
-.element-editor textarea {
-  resize: vertical;
+/* Styling for the Add Option Button */
+.add-option {
+  background-color: #5cb85c; /* Green success color */
+  color: #f0f0f5;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.3s;
+  margin-bottom: 10px;
 }
+
+.add-option:hover {
+  background-color: #4cae4c; /* Darker green for hover */
+}
+
+
+.save-changes,
+.cancel-button,
+.delete-element,
+.add-option {
+  display: block; /* Ensures buttons are stacked vertically */
+  width: 100%; /* Ensures full width */
+  margin-bottom: 10px; /* Adds space between the buttons */
+}
+
 
 .save-changes {
-  margin-top: 10px;
-  padding: 10px;
-  background: #28a745;
-  color: #ffffff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9em;
-  transition: background 0.3s;
+  background-color: #5cb85c;
 }
 
 .save-changes:hover {
-  background: #218838;
+  background-color: #4cae4c;
+}
+
+.cancel-button {
+  background-color: #5bc0de;
+}
+
+.cancel-button:hover {
+  background-color: #31b0d5;
 }
 
 .delete-element {
-  margin-top: 10px;
-  padding: 10px;
-  background: #dc3545;
-  color: #ffffff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9em;
-  transition: background 0.3s;
+  background-color: #d9534f;
 }
 
 .delete-element:hover {
-  background: #c82333;
+  background-color: #c9302c;
 }
 
-.element-editor button {
-  align-self: flex-start;
+/* Styling for the Load Saved Form Section */
+.load-form-section {
+  margin-bottom: 15px;
 }
 
-/* Improved positioning for edit/delete buttons */
-.form-element .drag-handle {
-  margin-left: 15px;
-}
-
-.form-element-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-/* Combined Element and Input Sections */
-.element-input-selector {
-  flex-direction: column;
-  gap: 10px;
-  padding-left: 0;
-  grid-template-columns: 1fr;
-  grid-column: span 2;
-  height: 100%;
-  overflow-y: auto;
-}
-
-/* Added padding to the elements and input fields */
-.element-button,
-.input-button {
-  padding: 10px;
-  margin: 5px;
-}
-
-/* Stretching Element and Input Fields across both columns */
-.element-input-selector h3 {
-  grid-column: span 2;
-}
-
-/* Padding inside the light gray sections */
-.form-preview {
-  padding: 20px;
-}
-
-.custom-button {
-  background-color: #4CAF50; /* Update to desired button color */
-  color: white; /* Ensure text is visible */
-  border: none;
-  padding: 10px 15px;
-  text-align: center;
-  font-size: 0.9em;
-  cursor: pointer;
-  margin: 5px;
-}
-
-.custom-button:hover {
-  background-color: #45a049; /* Button hover color */
-}
-
-.drag-handle {
-  background-color: #2196F3; /* Update drag button color if needed */
-  color: white;
-  border: none;
-  padding: 5px;
-  cursor: grab;
-}
-
-.reset-form {
+.load-form-section label {
   display: block;
+  color: #f0f0f5;
+  margin-bottom: 5px;
+}
+
+.load-form-section select {
   width: 100%;
-  padding: 15px;
-  background: #dc3545;
-  color: #ffffff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1em;
-  transition: background 0.3s;
-  margin: 10px 0;
-}
-
-.reset-form:hover {
-  background: #c82333;
-}
-/* Hide the default file input */
-.custom-file-input {
-  display: none;
-}
-
-/* Styled label to act as the button */
-.custom-file-label {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 20px;
-  border-radius: 8px;
-  border: 1px solid #ced4da;
-  background-color: #007bff;
-  color: white;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  gap: 10px;
-}
-
-/* Change background color on hover */
-.custom-file-label:hover {
-  background-color: #0056b3;
-}
-
-/* Filename styling */
-.file-name {
-  font-size: 14px;
-  color: white;
-  margin-left: 10px;
-}
-
-/* Custom styling for file label */
-.custom-file-input {
-  display: none;
-}
-
-.custom-file-label {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 20px;
-  border-radius: 8px;
-  border: 1px solid #ced4da;
-  background-color: #007bff;
-  color: white;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  margin-top: 10px;
-}
-
-.custom-file-label:hover {
-  background-color: #0056b3;
-}
-
-.form-builder-container {
-  display: flex;
-  height: 100vh;
-}
-
-.element-input-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* Two equal columns */
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-.selector-section {
-  background-color: #1f1f1f;
   padding: 10px;
-  border-radius: 10px;
-}
-
-.selector-section h3 {
-  color: white;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background-color: #26282c;
+  color: #f0f0f5;
+  font-size: 1em;
   margin-bottom: 10px;
-  font-size: 1.2em;
 }
 
-.selector-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr); /* Two elements per row */
-  gap: 15px;
+.load-form-section button:hover {
+  background-color: #31b0d5;
 }
 
-.selector-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #2c2c2c;
-  color: white;
-  border-radius: 8px;
-  padding: 15px;
+/* Styling for Add Option Button */
+.add-option {
+  background-color: #5cb85c; /* Splunk's green success color */
+  color: #f0f0f5;
   border: none;
+  padding: 10px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 1em;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s;
 }
 
-.selector-button:hover {
-  background-color: #3c3c3c;
+.add-option:hover {
+  background-color: #4cae4c; /* Darker green for hover */
+}
+
+/* Styling for Remove Button */
+.remove-option {
+  background-color: #d9534f; /* Splunk's danger color */
+  color: #f0f0f5;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.3s;
+}
+
+.remove-option:hover {
+  background-color: #c9302c; /* Darker red for hover */
 }

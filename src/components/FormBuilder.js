@@ -764,125 +764,113 @@ const addSubmitButton = () => {
 
   return (
     <div className="form-builder-container" style={{ height: '100vh', overflow: 'hidden' }}>
-      <div className="sidebar">
-                {/* Form Name Input */}
-                <div style={{ marginBottom: '10px' }}>
-          <label htmlFor="form-name" style={{ display: 'block', marginBottom: '5px', color: 'white' }}>
-            Form Name:
-          </label>
-          <input
-            id="form-name"
-            type="text"
-            value={formName}
-            onChange={(e) => setFormName(e.target.value)}
-            placeholder="Enter form name"
-            style={{
-              width: '100%',
-              padding: '10px',
-              borderRadius: '6px',
-              border: '1px solid #ced4da',
-            }}
-          />
-        </div>
-                {/* Label Input (Required) */}
-                <div style={{ marginBottom: '10px' }}>
-          <label htmlFor="form-label" style={{ display: 'block', marginBottom: '5px', color: 'white' }}>
-            Label (Required):
-          </label>
-          <input
-            id="form-label"
-            type="text"
-            value={formLabel}
-            onChange={(e) => setFormLabel(e.target.value)}
-            placeholder="Enter form label"
-            style={{
-              width: '100%',
-              padding: '10px',
-              borderRadius: '6px',
-              border: '1px solid #ced4da',
-            }}
-          />
-        </div>
-        <div className="element-selector">
-          <h3>Elements</h3>
-          {ELEMENT_TYPES.map((element) => (
-            <button
-              key={element.id}
-              onClick={() => addElement(element.id)}
-              className="element-button"
-            >
-              {element.label}
-            </button>
-          ))}
-        </div>
-        <div className="input-selector">
-          <h3>Input Fields</h3>
-          {INPUT_FIELDS.map((input) => (
-            <button
-              key={input.id}
-              onClick={() => addElement(input.id)}
-              className="input-button"
-            >
-              {input.label}
-            </button>
-          ))}
-        </div>
-        <button
-          onClick={handleResetForm}
-          className="reset-form-button custom-button"
-          style={{
-            backgroundColor: '#dc3545',
-            color: 'white',
-            border: 'none',
-            padding: '10px 20px',
-            textAlign: 'center',
-            fontSize: '16px',
-            cursor: 'pointer',
-            margin: '10px 0',
-            borderRadius: '6px',
-            width: '100%'
-          }}
-        >
-          Reset Form
-        </button>
-        {/* Save Form Button */}
-        <button
-          onClick={saveForm} // Use the saveForm function directly
-          className="save-form-button custom-button"
-          style={{
-            backgroundColor: '#4CAF50',
-            color: 'white',
-            border: 'none',
-            padding: '10px 20px',
-            textAlign: 'center',
-            fontSize: '16px',
-            cursor: 'pointer',
-            margin: '10px 0',
-            borderRadius: '6px',
-            width: '100%',
-          }}
-        >
-          Save Form
-        </button>
+<div className="sidebar">
+  <div style={{ marginBottom: '10px' }}>
+    <label htmlFor="saved-forms">Load Saved Form:</label>
+    <select
+      id="saved-forms"
+      value={selectedForm}
+      onChange={(e) => setSelectedForm(e.target.value)}
+    >
+      <option value="">-- Select a Form --</option>
+      {savedForms.map((formName) => (
+        <option key={formName} value={formName}>
+          {formName}
+        </option>
+      ))}
+    </select>
+<button
+  onClick={loadForm}
+  className="load-form-button"
+  style={{
+    backgroundColor: '#5bc0de', // Matches Splunk's light blue color
+    color: '#f0f0f5',
+    border: 'none',
+    padding: '12px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    width: '100%',
+    fontSize: '1em',
+    transition: 'background-color 0.3s',
+  }}
+>
+  Load Form
+</button>
 
-        <div style={{ marginBottom: '10px' }}>
-        <label htmlFor="saved-forms">Load Saved Form:</label>
-        <select
-          id="saved-forms"
-          value={selectedForm}
-          onChange={(e) => setSelectedForm(e.target.value)}
-          style={{ marginLeft: '10px' }}
-        >
-          <option value="">-- Select a Form --</option>
-          {savedForms.map((formName) => (
-            <option key={formName} value={formName}>
-              {formName}
-            </option>
-          ))}
-        </select>
-        <button onClick={loadForm} style={{ marginLeft: '10px' }}>Load Form</button>
-      </div>
-      </div>
+  </div>
+  
+  {/* Form Name Input */}
+  <div style={{ marginBottom: '10px' }}>
+    <label htmlFor="form-name" style={{ display: 'block', marginBottom: '5px', color: 'white' }}>
+      Form Name:
+    </label>
+    <input
+      id="form-name"
+      type="text"
+      value={formName}
+      onChange={(e) => setFormName(e.target.value)}
+      placeholder="Enter form name"
+      className="form-input"
+    />
+  </div>
+  
+  {/* Label Input (Required) */}
+  <div style={{ marginBottom: '10px' }}>
+    <label htmlFor="form-label" style={{ display: 'block', marginBottom: '5px', color: 'white' }}>
+      Label (Required):
+    </label>
+    <input
+      id="form-label"
+      type="text"
+      value={formLabel}
+      onChange={(e) => setFormLabel(e.target.value)}
+      placeholder="Enter form label"
+      className="form-input"
+    />
+  </div>
+
+  <div className="element-selector">
+    <h3>Elements</h3>
+    {ELEMENT_TYPES.map((element) => (
+      <button
+        key={element.id}
+        onClick={() => addElement(element.id)}
+        className="element-button"
+      >
+        {element.label}
+      </button>
+    ))}
+  </div>
+  
+  <div className="input-selector">
+    <h3>Input Fields</h3>
+    {INPUT_FIELDS.map((input) => (
+      <button
+        key={input.id}
+        onClick={() => addElement(input.id)}
+        className="input-button"
+      >
+        {input.label}
+      </button>
+    ))}
+  </div>
+
+  <button
+    onClick={handleResetForm}
+    className="reset-form-button"
+  >
+    Reset Form
+  </button>
+
+  {/* Save Form Button */}
+  <button
+    onClick={saveForm}
+    className="save-form-button"
+  >
+    Save Form
+  </button>
+</div>
+
       
 
       <div className="form-builder" ref={formContainerRef} style={{ height: '100%', overflowY: 'auto' }}>
