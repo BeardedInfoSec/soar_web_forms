@@ -1,37 +1,44 @@
+/* Navbar Container */
 .navbar {
-  background-color: #007bff; /* Keeps your desired color */
-  padding: 5px 15px; /* Adjusts padding to make the navbar slimmer */
-  font-size: 0.9em; /* Reduces the text size slightly */
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); /* Adds a subtle shadow */
+    background-color: var(--splunk-background-default);
+    color: var(--splunk-text-default);
+    padding: 5px 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.navbar ul {
-  list-style-type: none;
-  display: flex;
-  gap: 8px; /* Reduces spacing between menu items */
-  padding: 0; /* Removes default padding */
-  margin: 0; /* Ensures the navbar stays compact */
+/* Logo Container */
+.logo-container {
+    display: flex;
+    align-items: center;
 }
 
-.navbar a {
-  color: white;
-  text-decoration: none;
-  padding: 5px 10px; /* Slight padding for links */
-  border-radius: 4px; /* Rounded corners for a sleeker look */
-  transition: background-color 0.3s; /* Smooth background transition */
+/* Logo Image */
+.navbar-logo-image {
+    height: 55px; /* Adjust logo height */
+    width: auto; /* Maintain aspect ratio */
+    margin-right: 10px;
 }
 
-.navbar a:hover {
-  background-color: #0056b3; /* Darker background on hover */
+/* App Title */
+.navbar-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: var(--splunk-text-default);
 }
 
-.navbar a.active {
-  font-weight: bold;
-  text-decoration: underline;
+/* Navigation Links */
+.navbar-link {
+    color: var(--splunk-text-default);
+    text-decoration: none;
+    margin: 0 15px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
 }
 
-/* Optional: Center the navigation */
-.navbar ul {
-  justify-content: left;
-  width: 100%;
+.navbar-link:hover {
+    background-color: var(--splunk-background-secondary);
 }

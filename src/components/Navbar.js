@@ -1,29 +1,21 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import './Navbar.css';
+import logo from '../assets/images/splunk_app.png';
 
 const Navbar = () => {
-  return (
-    <nav className="navbar">
-      <ul>
-        <li>
-          <NavLink exact to="/" activeClassName="active">
-            Form Builder
-          </NavLink>
-        </li>
-        <li>
-          <NavLink to="/view-forms" activeClassName="active">
-            View Forms
-          </NavLink>
-        </li>
-        <li>
-          <NavLink to="/configuration" activeClassName="active">
-            Configuration
-          </NavLink>
-        </li>
-      </ul>
-    </nav>
-  );
+    return (
+        <div className="navbar">
+            <div className="navbar-logo">
+                <img src={logo} alt="SOAR Forms Logo" className="navbar-logo-image" />
+            </div>
+            <nav className="navbar-links">
+                <Link to="/" className="navbar-link">Form Builder</Link>
+                <Link to="/view-forms" className="navbar-link">View Forms</Link>
+                <Link to="/configuration" className="navbar-link">Configuration</Link>
+            </nav>
+        </div>
+    );
 };
 
 export default Navbar;

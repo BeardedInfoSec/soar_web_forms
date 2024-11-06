@@ -8,7 +8,7 @@ const ELEMENT_TYPES = [
   { id: 'heading', label: 'Heading' },
   { id: 'text', label: 'Text' },
   { id: 'divider', label: 'Divider' },
-  { id: 'button', label: 'Button' },
+  //{ id: 'button', label: 'Button' },
   //{ id: 'image', label: 'Image' },
   { id: 'table', label: 'Table' }
 ];
@@ -27,16 +27,19 @@ const INPUT_FIELDS = [
 
 const FormBuilder = () => {
   const [formElements, setFormElements] = useState([]);
-  const [formName, setFormName] = useState(''); // State to track form name
-  const [formLabel, setFormLabel] = useState(''); // New required label field
-  const [formTags, setFormTags] = useState(''); // New optional tags field
+  const [formName, setFormName] = useState('');
+  const [formLabel, setFormLabel] = useState('');
+  const [formTags, setFormTags] = useState('');
+  const [savedForms, setSavedForms] = useState([]); // Add state to store list of saved forms
+  const [selectedForm, setSelectedForm] = useState(''); // Add state to track selected form
   const [selectedElement, setSelectedElement] = useState(null);
   const [draftSettings, setDraftSettings] = useState(null);
   const [draggingElement, setDraggingElement] = useState(null);
   const formContainerRef = useRef(null);
   const [selectedFileName, setSelectedFileName] = useState('');
   const SUBMIT_BUTTON_ID = 'submit-button';
-
+  const [formToLoad, setFormToLoad] = useState(null); // Hold the form name to load after clearing
+  
 
 useEffect(() => {
   console.log('Form Elements Updated:', formElements);
@@ -52,6 +55,83 @@ useEffect(() => {
     addSubmitButton();
   }
 }, [formElements]);
+
+useEffect(() => {
+  loadSavedForms();
+}, []);
+
+const loadSavedForms = () => {
+  const formKeys = Object.keys(localStorage).filter(key => {
+    const data = localStorage.getItem(key);
+    return data && data.includes('<form>');
+  });
+  setSavedForms(formKeys);
+};
+
+const loadForm = () => {
+  if (!selectedForm) {
+    alert('Please select a form to load.');
+    return;
+  }
+
+  // Clear existing elements and set the form to load afterward
+  setFormElements([]); 
+  setFormToLoad(selectedForm);
+};
+
+useEffect(() => {
+  // When formElements is cleared, load the new form
+  if (formToLoad && formElements.length === 0) {
+    const savedData = localStorage.getItem(formToLoad);
+    if (!savedData) {
+      alert(`No saved form found for the name "${formToLoad}"`);
+      setFormToLoad(null); // Reset formToLoad if not found
+      return;
+    }
+
+    try {
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(savedData, 'application/xml');
+      const loadedName = xmlDoc.querySelector('form > name')?.textContent || '';
+      const loadedLabel = xmlDoc.querySelector('form > label')?.textContent || '';
+      const loadedTags = Array.from(xmlDoc.querySelectorAll('form > tags > tag')).map(tag => tag.textContent);
+
+      const elements = Array.from(xmlDoc.querySelectorAll('elements > element')).map((el) => {
+        const type = el.querySelector('type')?.textContent || 'text';
+        const optionsNode = el.querySelector('dropdownOptions');
+        const options = optionsNode ? Array.from(optionsNode.querySelectorAll('option')).map(opt => opt.textContent) : [];
+
+        return {
+          id: Date.now().toString(),
+          type,
+          key: el.querySelector('key')?.textContent || '',
+          label: el.querySelector('label')?.textContent || '',
+          required: el.querySelector('required')?.textContent === 'true',
+          alignment: el.querySelector('alignment')?.textContent || 'center',
+          settings: {
+            headerLevel: el.querySelector('headerLevel')?.textContent || 'h1',
+            placeholder: el.querySelector('placeholder')?.textContent || '',
+            dropdownOptions: options,
+          }
+        };
+      });
+
+      // Set new form data
+      setFormName(loadedName);
+      setFormLabel(loadedLabel);
+      setFormTags(loadedTags.join(', '));
+      setFormElements(elements);
+      setFormToLoad(null); // Reset formToLoad after loading
+
+      console.log(`Form "${formToLoad}" loaded successfully!`);
+    } catch (error) {
+      console.error('Error loading form:', error);
+      alert('Failed to load form data.');
+      setFormToLoad(null); // Reset formToLoad on error
+    }
+  }
+}, [formElements, formToLoad]); // Only run this effect when formElements or formToLoad changes
+
 
 const addSubmitButton = () => {
   setFormElements(prev => [
@@ -785,7 +865,25 @@ const addSubmitButton = () => {
           Save Form
         </button>
 
+        <div style={{ marginBottom: '10px' }}>
+        <label htmlFor="saved-forms">Load Saved Form:</label>
+        <select
+          id="saved-forms"
+          value={selectedForm}
+          onChange={(e) => setSelectedForm(e.target.value)}
+          style={{ marginLeft: '10px' }}
+        >
+          <option value="">-- Select a Form --</option>
+          {savedForms.map((formName) => (
+            <option key={formName} value={formName}>
+              {formName}
+            </option>
+          ))}
+        </select>
+        <button onClick={loadForm} style={{ marginLeft: '10px' }}>Load Form</button>
       </div>
+      </div>
+      
 
       <div className="form-builder" ref={formContainerRef} style={{ height: '100%', overflowY: 'auto' }}>
         <DndContext
