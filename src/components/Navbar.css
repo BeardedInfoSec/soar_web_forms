@@ -36,9 +36,10 @@
     margin: 0 15px;
     padding: 8px 12px;
     border-radius: 4px;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .navbar-link:hover {
-    background-color: var(--splunk-background-secondary);
+    background-color: var(--splunk-background-secondary); /* Keep the background color */
+    color: #007bff; /* Highlight blue text */
 }

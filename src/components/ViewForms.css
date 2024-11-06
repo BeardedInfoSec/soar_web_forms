@@ -2,17 +2,20 @@
 .view-forms-container {
   max-width: 600px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 30px;
   text-align: center;
-  color: #d9e1e8; /* Splunk's off-white text color */
-  font-family: "Splunk Platform", Arial, sans-serif;
+  color: var(--splunk-text-default);
+  background-color: #1A1C20;
+  border-radius: 8px;
+  box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.3);
 }
 
-h2 {
-  font-size: 24px;
+/* Header Styling */
+.view-forms-container h2 {
+  font-size: 26px;
   font-weight: bold;
+  color: var(--splunk-text-primary);
   margin-bottom: 20px;
-  color: #ffffff;
 }
 
 /* Form List */
@@ -27,15 +30,16 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px;
+  padding: 12px 20px;
   border-radius: 6px;
-  background-color: #2a2f3a; /* Splunk dark gray */
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  background-color: #2A2D34;
+  color: var(--splunk-text-default);
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .form-card:hover {
-  background-color: #3b404d; /* Lighter on hover */
+  background-color: #3B3F45;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
@@ -43,71 +47,82 @@ h2 {
 .form-name {
   font-size: 18px;
   font-weight: 500;
-  color: #d9e1e8;
+  color: var(--splunk-text-primary);
   cursor: pointer;
 }
 
 .form-name:hover {
-  color: #00aaff; /* Light blue on hover */
+  color: #00aaff;
   text-decoration: underline;
 }
 
-/* Modify Button for Manage Mode */
-.modify-button {
-  padding: 6px 12px;
-  font-size: 14px;
-  color: #ffffff;
-  background-color: #0074d9; /* Splunk's primary blue */
-  border: none;
+/* Button Container */
+.button-container {
+  display: flex;
+  justify-content: center; /* Center-align buttons */
+  margin-bottom: 20px;
+}
+
+/* General Button Styling */
+.manage-button,
+.delete-selected-button,
+.cancel-button {
+  padding: 5px 10px; /* Consistent padding for all buttons */
+  font-size: 16px;
+  font-weight: 500;
+  color: #ffffff; /* White text */
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.modify-button:hover {
-  background-color: #005bb5; /* Darker blue on hover */
+/* Add specific margins for spacing */
+.manage-button {
+  margin-right: 10px; /* Space to the right */
 }
 
-/* Delete Button - Initially Hidden */
-.delete-button {
-  display: none; /* Only shown in manage mode */
-  padding: 6px 12px;
-  font-size: 14px;
+.delete-selected-button {
+  margin-left: 10px; /* Space to the left */
+}
+
+/* Manage Forms Button */
+.manage-button {
+  background-color: #007bff; /* Splunk blue */
   color: #ffffff;
-  background-color: #dc3545; /* Red delete color */
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+  border: 1px solid #0056b3;
 }
 
-.delete-button:hover {
-  background-color: #c82333;
+.manage-button:hover {
+  background-color: #0056b3;
+  border-color: #004085;
 }
 
-/* Manage Mode - Adds Border to Form Cards */
-.manage-mode .form-card {
-  border: 1px solid #3e465a; /* Border to indicate manage mode */
-  padding: 10px;
+/* Delete Selected Button */
+.delete-selected-button {
+  background-color: #d9534f; /* Red color for delete */
+  border: 1px solid #d43f3a;
 }
 
-.manage-mode .delete-button {
-  display: inline-block; /* Display delete button in manage mode */
+.delete-selected-button:hover {
+  background-color: #c9302c;
+  border-color: #ac2925;
+}
+
+.delete-selected-button:disabled {
+  background-color: #a9a9a9;
+  color: #f5f5f5;
+  border: 1px solid #7f7f7f;
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 /* Cancel Button */
 .cancel-button {
-  padding: 6px 12px;
-  font-size: 14px;
-  color: #ffffff;
-  background-color: #6c757d; /* Gray for cancel */
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-top: 20px;
+  background-color: var(--splunk-button-secondary-background);
+  color: var(--splunk-button-secondary-text);
+  border: 1px solid var(--splunk-border-default);
 }
 
 .cancel-button:hover {
-  background-color: #5a6268;
+  background-color: var(--splunk-button-secondary-background-hover);
 }

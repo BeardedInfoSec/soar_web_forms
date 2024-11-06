@@ -74,11 +74,12 @@ const Configuration = () => {
         </div>
 
         <div className="button-container">
-          <Button
-            label="Save Configuration"
-            appearance="primary"
-            onClick={saveConfiguration}
-          />
+        <Button
+          label="Save Configuration"
+          appearance="primary"
+          onClick={saveConfiguration}
+          style={{ backgroundColor: '#007BFF', color: '#ffffff' }} // Inline style for custom color
+        />
           <Button
             label="Test Connection"
             appearance="secondary"
