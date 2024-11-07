@@ -96,25 +96,27 @@ useEffect(() => {
       const loadedLabel = xmlDoc.querySelector('form > label')?.textContent || '';
       const loadedTags = Array.from(xmlDoc.querySelectorAll('form > tags > tag')).map(tag => tag.textContent);
 
-      const elements = Array.from(xmlDoc.querySelectorAll('elements > element')).map((el) => {
-        const type = el.querySelector('type')?.textContent || 'text';
-        const optionsNode = el.querySelector('dropdownOptions');
-        const options = optionsNode ? Array.from(optionsNode.querySelectorAll('option')).map(opt => opt.textContent) : [];
+      const elements = Array.from(xmlDoc.querySelectorAll('elements > element'))
+        .map((el, index) => {
+          const type = el.querySelector('type')?.textContent || 'text';
+          const optionsNode = el.querySelector('dropdownOptions');
+          const options = optionsNode ? Array.from(optionsNode.querySelectorAll('option')).map(opt => opt.textContent) : [];
 
-        return {
-          id: Date.now().toString(),
-          type,
-          key: el.querySelector('key')?.textContent || '',
-          label: el.querySelector('label')?.textContent || '',
-          required: el.querySelector('required')?.textContent === 'true',
-          alignment: el.querySelector('alignment')?.textContent || 'center',
-          settings: {
-            headerLevel: el.querySelector('headerLevel')?.textContent || 'h1',
-            placeholder: el.querySelector('placeholder')?.textContent || '',
-            dropdownOptions: options,
-          }
-        };
-      });
+          return {
+            id: `element-${Date.now()}-${index}`, // Generate a unique ID using Date.now() and the index
+            type,
+            key: el.querySelector('key')?.textContent || '',
+            label: el.querySelector('label')?.textContent || '',
+            required: el.querySelector('required')?.textContent === 'true',
+            alignment: el.querySelector('alignment')?.textContent || 'center',
+            settings: {
+              headerLevel: el.querySelector('headerLevel')?.textContent || 'h1',
+              placeholder: el.querySelector('placeholder')?.textContent || '',
+              dropdownOptions: options,
+            }
+          };
+        })
+        .filter(el => el.type !== 'button' && el.id !== SUBMIT_BUTTON_ID); // Exclude the submit button
 
       // Set new form data
       setFormName(loadedName);
@@ -131,7 +133,6 @@ useEffect(() => {
     }
   }
 }, [formElements, formToLoad]); // Only run this effect when formElements or formToLoad changes
-
 
 const addSubmitButton = () => {
   setFormElements(prev => [
@@ -288,7 +289,6 @@ const addSubmitButton = () => {
     }
   };
 
-
   const handleEditClick = (element) => {
     setSelectedElement(element);
     setDraftSettings({
@@ -313,7 +313,6 @@ const addSubmitButton = () => {
     });
   };
   
-
   const applyDraftChanges = () => {
     if (selectedElement && draftSettings) {
       if (isKeyUnique(draftSettings.key)) {
@@ -329,7 +328,6 @@ const addSubmitButton = () => {
     }
   };
   
-
   const cancelChanges = () => {
     setSelectedElement(null);
     setDraftSettings(null);
@@ -352,7 +350,6 @@ const addSubmitButton = () => {
     );
   };
   
-
   const handleDragStart = ({ active }) => {
     setDraggingElement(active.id);
   };
@@ -392,7 +389,6 @@ const addSubmitButton = () => {
     }
   };
   
-
   const handleResetForm = () => {
     if (window.confirm('Are you sure you want to reset the form?')) {
       setFormElements([]);
@@ -498,7 +494,7 @@ const addSubmitButton = () => {
         );
       case 'divider':
         return <hr style={{ ...alignmentStyle, width: '100%' }} />;
-        case 'image':
+      case 'image':
           return (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
               <label className="custom-file-label">
@@ -524,8 +520,7 @@ const addSubmitButton = () => {
                 />
               )}
             </div>
-          );
-        
+          );       
       case 'file':
           return (
             <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
@@ -648,8 +643,7 @@ const addSubmitButton = () => {
               ))}
             </select>
           </div>
-        );
-      
+        );    
       case 'boolean':
         return (
           <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
@@ -765,45 +759,11 @@ const addSubmitButton = () => {
   return (
     <div className="form-builder-container" style={{ height: '100vh', overflow: 'hidden' }}>
 <div className="sidebar">
-  <div style={{ marginBottom: '10px' }}>
-    <label htmlFor="saved-forms">Load Saved Form:</label>
-    <select
-      id="saved-forms"
-      value={selectedForm}
-      onChange={(e) => setSelectedForm(e.target.value)}
-    >
-      <option value="">-- Select a Form --</option>
-      {savedForms.map((formName) => (
-        <option key={formName} value={formName}>
-          {formName}
-        </option>
-      ))}
-    </select>
-<button
-  onClick={loadForm}
-  className="load-form-button"
-  style={{
-    backgroundColor: '#5bc0de', // Matches Splunk's light blue color
-    color: '#f0f0f5',
-    border: 'none',
-    padding: '12px',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    width: '100%',
-    fontSize: '1em',
-    transition: 'background-color 0.3s',
-  }}
->
-  Load Form
-</button>
 
-  </div>
-  
+
   {/* Form Name Input */}
-  <div style={{ marginBottom: '10px' }}>
-    <label htmlFor="form-name" style={{ display: 'block', marginBottom: '5px', color: 'white' }}>
-      Form Name:
-    </label>
+  <div className="form-name-section" style={{ marginBottom: '20px' }}>
+    <label htmlFor="form-name" className="sidebar-label">Form Name:</label>
     <input
       id="form-name"
       type="text"
@@ -813,12 +773,10 @@ const addSubmitButton = () => {
       className="form-input"
     />
   </div>
-  
+
   {/* Label Input (Required) */}
-  <div style={{ marginBottom: '10px' }}>
-    <label htmlFor="form-label" style={{ display: 'block', marginBottom: '5px', color: 'white' }}>
-      Label (Required):
-    </label>
+  <div className="form-label-section" style={{ marginBottom: '20px' }}>
+    <label htmlFor="form-label" className="sidebar-label">Label (Required):</label>
     <input
       id="form-label"
       type="text"
@@ -829,49 +787,54 @@ const addSubmitButton = () => {
     />
   </div>
 
-  <div className="element-selector">
-    <h3>Elements</h3>
-    {ELEMENT_TYPES.map((element) => (
-      <button
-        key={element.id}
-        onClick={() => addElement(element.id)}
-        className="element-button"
-      >
-        {element.label}
-      </button>
-    ))}
-  </div>
-  
-  <div className="input-selector">
-    <h3>Input Fields</h3>
-    {INPUT_FIELDS.map((input) => (
-      <button
-        key={input.id}
-        onClick={() => addElement(input.id)}
-        className="input-button"
-      >
-        {input.label}
-      </button>
-    ))}
-  </div>
+  <div className="element-input-wrapper" style={{ display: 'flex', gap: '10px' }}>
+    <div className="element-selector">
+      <h4>Elements</h4>
+      {ELEMENT_TYPES.map((element) => (
+        <button
+          key={element.id}
+          onClick={() => addElement(element.id)}
+          className="element-button"
+        >
+          {element.label}
+        </button>
+      ))}
+    </div>
 
-  <button
-    onClick={handleResetForm}
-    className="reset-form-button"
-  >
-    Reset Form
-  </button>
-
-  {/* Save Form Button */}
-  <button
-    onClick={saveForm}
-    className="save-form-button"
-  >
-    Save Form
-  </button>
+    <div className="input-selector">
+      <h4>Input Fields</h4>
+      {INPUT_FIELDS.map((input) => (
+        <button
+          key={input.id}
+          onClick={() => addElement(input.id)}
+          className="input-button"
+        >
+          {input.label}
+        </button>
+      ))}
+    </div>
+  </div>
+  <div className="load-section" style={{ marginBottom: '20px' }}>
+    <label htmlFor="saved-forms" className="sidebar-label">Load Saved Form:</label>
+    <select
+      id="saved-forms"
+      value={selectedForm}
+      onChange={(e) => setSelectedForm(e.target.value)}
+      className="sidebar-select"
+    >
+      <option value="">-- Select a Form --</option>
+      {savedForms.map((formName) => (
+        <option key={formName} value={formName}>
+          {formName}
+        </option>
+      ))}
+    </select>
+    <button onClick={loadForm} className="load-form-button">Load Form</button>
+  </div>
+  <button onClick={saveForm} className="save-form-button">Save Form</button>
+  <button onClick={handleResetForm} className="reset-form-button">Reset Form</button>
 </div>
 
-      
 
       <div className="form-builder" ref={formContainerRef} style={{ height: '100%', overflowY: 'auto' }}>
         <DndContext
@@ -1013,28 +976,22 @@ const addSubmitButton = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  Remove
+                 X
                 </button>
               </div>
             ))}
-            <button
-              onClick={() =>
-                setDraftSettings((prev) => ({
-                  ...prev,
-                  dropdownOptions: [...(prev.dropdownOptions || []), ''],
-                }))
-              }
-              style={{
-                marginTop: '10px',
-                padding: '5px 10px',
-                color: 'white',
-                backgroundColor: 'green',
-                borderRadius: '4px',
-                cursor: 'pointer',
-              }}
-            >
-              Add Option
-            </button>
+<button
+  onClick={() =>
+    setDraftSettings((prev) => ({
+      ...prev,
+      dropdownOptions: [...(prev.dropdownOptions || []), ''],
+    }))
+  }
+  className="add-option-button"
+>
+  +
+</button>
+
           </>
         )}
 

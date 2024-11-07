@@ -1,10 +1,10 @@
 /* General Styling for Form Builder */
 body {
-  font-family: 'Splunk Web', Arial, sans-serif;
-  background-color: #0c0c0e; /* Matches Splunk's dark theme */
+  font-family: 'Splunk Platform Sans', 'Splunk Data Sans', Roboto, Droid, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background-color: #0b0c0e; /* Matches Splunk's darker theme */
   margin: 0;
   padding: 0;
-  color: #d8d8d8;
+  color: #b5b5b5;
   height: 100vh;
   overflow: hidden;
 }
@@ -15,29 +15,29 @@ body {
   padding: 20px;
   height: 100%;
   box-sizing: border-box;
-  background-color: #0c0c0e;
+  background-color: #0b0c0e;
 }
 
 .sidebar {
-  background-color: #1c1e22; /* Dark background for the sidebar */
+  background-color: #1a1c20; /* Darker background for the sidebar */
   padding: 20px;
   width: 250px;
-  border-right: 1px solid #333;
+  border-right: 1px solid #43454b;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .sidebar h3 {
   margin: 0 0 15px 0;
-  color: #f0f0f5;
+  color: #fafafa;
   font-size: 1.2em;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid #43454b;
   padding-bottom: 5px;
 }
 
 .sidebar label {
   display: block;
-  color: #f0f0f5;
+  color: #b5b5b5;
   margin-bottom: 5px;
   font-weight: bold;
 }
@@ -48,18 +48,18 @@ body {
   width: 90%;
   padding: 10px;
   border-radius: 6px;
-  border: 1px solid #444;
+  border: 1px solid #505158;
   background-color: #26282c;
-  color: #f0f0f5;
+  color: #b5b5b5;
   margin-bottom: 15px;
 }
 
 .element-selector,
 .input-selector {
-  background-color: #1c1e22;
+  background-color: #1a1c20;
   padding: 15px;
   border-radius: 8px;
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
   margin-bottom: 15px;
 }
 
@@ -67,16 +67,16 @@ body {
   width: 100%;
   padding: 10px;
   border-radius: 6px;
-  border: 1px solid #444;
+  border: 1px solid #505158;
   background-color: #26282c;
-  color: #f0f0f5;
+  color: #b5b5b5;
   margin-bottom: 10px;
   font-size: 1em;
 }
 
 .load-form-button {
-  background-color: #5bc0de;
-  color: #f0f0f5;
+  background-color: #7B56DB;
+  color: #ffffff;
   border: none;
   padding: 12px;
   border-radius: 6px;
@@ -87,7 +87,7 @@ body {
 }
 
 .load-form-button:hover {
-  background-color: #31b0d5; /* Darker shade for hover */
+  background-color: #602CA1; /* Darker shade for hover */
 }
 
 .element-button,
@@ -98,7 +98,7 @@ body {
   width: 100%;
   padding: 12px;
   background-color: #26282c;
-  color: #f0f0f5;
+  color: #b5b5b5;
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -118,8 +118,8 @@ body {
   display: block;
   width: 100%;
   padding: 14px;
-  background-color: #d9534f; /* Splunk's danger color */
-  color: #f0f0f5;
+  background-color: #ff4242; /* Updated to a more vibrant danger color */
+  color: #ffffff;
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -129,23 +129,24 @@ body {
 }
 
 .reset-form-button:hover {
-  background-color: #c9302c;
+  background-color: #ff0f0f;
 }
 
 .save-form-button {
-  background-color: #5cb85c; /* Splunk's success color */
+  background-color: #3993FF; /* Updated to a more vibrant success color */
+  color: #ffffff;
 }
 
 .save-form-button:hover {
-  background-color: #4cae4c;
+  background-color: #2273c4;
 }
 
 .form-builder {
   flex: 1;
-  background: #0c0c0e;
+  background: #0b0c0e;
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
   overflow-y: auto;
 }
 
@@ -153,16 +154,16 @@ body {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  background-color: #1c1e22;
+  background-color: #1a1c20;
   padding: 20px;
   border-radius: 8px;
-  border: 1px solid #333;
+  border: 1px solid #43454b;
 }
 
 .form-element {
   background-color: #26282c;
   padding: 15px;
-  border: 1px solid #333;
+  border: 1px solid #43454b;
   border-radius: 8px;
   position: relative;
   display: flex;
@@ -178,7 +179,7 @@ body {
 .form-element p {
   margin: 0;
   flex-grow: 1;
-  color: #f0f0f5;
+  color: #b5b5b5;
   font-size: 1em;
 }
 
@@ -188,7 +189,7 @@ body {
   justify-content: center;
   width: 25px;
   height: 25px;
-  background-color: #0275d8;
+  background-color: #3993FF;
   color: #ffffff;
   border-radius: 50%;
   cursor: grab;
@@ -196,21 +197,21 @@ body {
 }
 
 .drag-handle:hover {
-  background-color: #025aa5;
+  background-color: #2273c4;
 }
 
 .dragging-overlay {
   padding: 10px;
-  background-color: #0275d8;
+  background-color: #3993FF;
   color: #ffffff;
   border-radius: 4px;
 }
 
 .element-editor {
-  background-color: #1c1e22;
+  background-color: #1a1c20;
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
   height: calc(100% - 40px);
   overflow-y: auto;
 }
@@ -219,7 +220,7 @@ body {
   display: block;
   font-weight: bold;
   margin-bottom: 5px;
-  color: #f0f0f5;
+  color: #b5b5b5;
 }
 
 .element-editor input,
@@ -228,18 +229,18 @@ body {
   max-width: 90%; /* Adjusts the maximum width */
   padding: 10px;
   margin-top: 5px;
-  border: 1px solid #444;
+  border: 1px solid #505158;
   border-radius: 4px;
   font-size: 1em;
   background-color: #26282c;
-  color: #f0f0f5;
+  color: #b5b5b5;
   margin-bottom: 15px;
 }
 
 /* Styling for the Add Option Button */
 .add-option {
-  background-color: #5cb85c; /* Green success color */
-  color: #f0f0f5;
+  background-color: #85f415; /* Vibrant green success color */
+  color: #ffffff;
   border: none;
   padding: 10px 15px;
   border-radius: 6px;
@@ -250,9 +251,8 @@ body {
 }
 
 .add-option:hover {
-  background-color: #4cae4c; /* Darker green for hover */
+  background-color: #6bcc0a; /* Darker green for hover */
 }
-
 
 .save-changes,
 .cancel-button,
@@ -261,31 +261,31 @@ body {
   display: block; /* Ensures buttons are stacked vertically */
   width: 100%; /* Ensures full width */
   margin-bottom: 10px; /* Adds space between the buttons */
+  color: #ffffff;
 }
 
-
 .save-changes {
-  background-color: #5cb85c;
+  background-color: #85f415;
 }
 
 .save-changes:hover {
-  background-color: #4cae4c;
+  background-color: #6bcc0a;
 }
 
 .cancel-button {
-  background-color: #5bc0de;
+  background-color: #3993FF;
 }
 
 .cancel-button:hover {
-  background-color: #31b0d5;
+  background-color: #2273c4;
 }
 
 .delete-element {
-  background-color: #d9534f;
+  background-color: #ff4242;
 }
 
 .delete-element:hover {
-  background-color: #c9302c;
+  background-color: #ff0f0f;
 }
 
 /* Styling for the Load Saved Form Section */
@@ -295,7 +295,7 @@ body {
 
 .load-form-section label {
   display: block;
-  color: #f0f0f5;
+  color: #b5b5b5;
   margin-bottom: 5px;
 }
 
@@ -303,37 +303,21 @@ body {
   width: 100%;
   padding: 10px;
   border-radius: 6px;
-  border: 1px solid #444;
+  border: 1px solid #505158;
   background-color: #26282c;
-  color: #f0f0f5;
+  color: #b5b5b5;
   font-size: 1em;
   margin-bottom: 10px;
 }
 
 .load-form-section button:hover {
-  background-color: #31b0d5;
-}
-
-/* Styling for Add Option Button */
-.add-option {
-  background-color: #5cb85c; /* Splunk's green success color */
-  color: #f0f0f5;
-  border: none;
-  padding: 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1em;
-  transition: background-color 0.3s;
-}
-
-.add-option:hover {
-  background-color: #4cae4c; /* Darker green for hover */
+  background-color: #2273c4;
 }
 
 /* Styling for Remove Button */
 .remove-option {
-  background-color: #d9534f; /* Splunk's danger color */
-  color: #f0f0f5;
+  background-color: #ff4242; /* Vibrant red for danger */
+  color: #ffffff;
   border: none;
   padding: 10px;
   border-radius: 6px;
@@ -343,5 +327,62 @@ body {
 }
 
 .remove-option:hover {
-  background-color: #c9302c; /* Darker red for hover */
+  background-color: #ff0f0f; /* Darker red for hover */
+}
+
+.element-input-wrapper {
+  display: flex;
+  justify-content: space-between; /* Aligns the sections side by side */
+  gap: 15px; /* Space between sections */
+}
+
+.element-selector, .input-selector {
+  flex: 1;
+  background-color: #1a1c20;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
+}
+
+.element-selector h3, .input-selector h3 {
+  text-align: center; /* Center align the section titles */
+  border-bottom: 1px solid #43454b;
+  padding-bottom: 5px;
+  margin-bottom: 10px;
+  color: #b5b5b5;
+}
+
+.element-button, .input-button {
+  width: 100px; /* Adjust to keep buttons uniform */
+  height: 48px; /* Make buttons more square */
+  margin: 5px auto; /* Center the buttons */
+  background-color: #26282c;
+  color: #b5b5b5;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.element-button:hover, .input-button:hover {
+  background-color: #2e3035;
+  transform: scale(1.03);
+}
+
+.add-option-button {
+  margin-top: 10px;
+  padding: 8px 12px;
+  color: #ffffff;
+  background-color: #f49106; /* Vibrant green color */
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9em;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+  transition: background-color 0.3s;
+}
+
+.add-option-button:hover {
+  background-color: #c27305; /* Darker green for hover */
 }
