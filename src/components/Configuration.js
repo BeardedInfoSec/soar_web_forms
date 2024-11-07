@@ -1,30 +1,56 @@
 import React, { useState } from 'react';
 import Button from '@splunk/react-ui/Button'; // Import Splunk UI Button
 import './Configuration.css';
+import axios from 'axios';
 
 const Configuration = () => {
   const [jsonConfig, setJsonConfig] = useState('');
   const [sslVerification, setSslVerification] = useState(true);
   const [connectionStatus, setConnectionStatus] = useState('');
 
-  const saveConfiguration = () => {
+  const saveConfiguration = async () => {
     try {
       const parsedConfig = JSON.parse(jsonConfig);
       const configWithSSL = { ...parsedConfig, sslVerification };
+    
+      // Save to localStorage as before
       localStorage.setItem('soarConfig', JSON.stringify(configWithSSL));
+    
+      // Use the IP address of the Linux server instead of localhost
+      const linuxServerUrl = 'http://localhost:5000/configuration'; // Replace with your Linux server IP
+  
+      // Save to backend
+      await axios.post(linuxServerUrl, {
+        server: parsedConfig.server,
+        ph_auth_token: parsedConfig['ph-auth-token'],
+        ssl_verification: sslVerification,
+      }, {
+        headers: {
+          'Authorization': `Bearer <your_jwt_token>` // Ensure you pass the JWT if needed
+        }
+      });
+  
       alert('Configuration saved successfully!');
     } catch (error) {
-      alert('Invalid JSON. Please check your input.');
-      console.error('JSON parsing error:', error);
+      if (error instanceof SyntaxError) {
+        alert('Invalid JSON. Please check your input.');
+        console.error('JSON parsing error:', error.message);
+      } else {
+        alert(`Failed to save configuration: ${error.message}`);
+        console.error('Error during save configuration:', error);
+      }
     }
   };
+  
 
   const testConnection = async () => {
     setConnectionStatus('Testing connection...');
     try {
+      // Retrieve configuration from localStorage
       const config = JSON.parse(localStorage.getItem('soarConfig')) || {};
       const { server, 'ph-auth-token': authToken } = config;
 
+      // Ensure required fields are provided
       if (!server || !authToken) {
         throw new Error('Missing server URL or auth token in configuration');
       }
@@ -32,6 +58,7 @@ const Configuration = () => {
       const apiUrl = `${server}/rest/version`;
       console.log('Sending request to', apiUrl);
 
+      // Perform a test connection to the server
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
@@ -74,12 +101,12 @@ const Configuration = () => {
         </div>
 
         <div className="button-container">
-        <Button
-          label="Save Configuration"
-          appearance="primary"
-          onClick={saveConfiguration}
-          style={{ backgroundColor: '#007BFF', color: '#ffffff' }} // Inline style for custom color
-        />
+          <Button
+            label="Save Configuration"
+            appearance="primary"
+            onClick={saveConfiguration}
+            style={{ backgroundColor: '#007BFF', color: '#ffffff' }} // Inline style for custom color
+          />
           <Button
             label="Test Connection"
             appearance="secondary"

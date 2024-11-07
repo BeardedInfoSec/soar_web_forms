@@ -1,40 +1,58 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { SplunkThemeProvider } from '@splunk/themes';
 import Navbar from './components/Navbar';
 import FormBuilder from './components/FormBuilder';
 import ViewForms from './components/ViewForms';
 import Configuration from './components/Configuration';
-import FormDisplay from './components/FormDisplay'; // Import FormDisplay
-import Login from './components/login'; // Import Login component
-import Register from './components/register'; // Import Register component
+import FormDisplay from './components/FormDisplay';
+import Login from './components/Login';
 
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    !!localStorage.getItem('token') // Check if token exists in localStorage
+  );
 
   const handleLogin = () => {
     setIsAuthenticated(true);
+    console.log('User logged in');
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('token'); // Remove token to log out
     setIsAuthenticated(false);
+    console.log('User logged out');
   };
 
   return (
     <SplunkThemeProvider family="enterprise" density="comfortable">
       <Router>
-        <Navbar isAuthenticated={isAuthenticated} onLogout={handleLogout} /> {/* Pass authentication props */}
+        <Navbar isAuthenticated={isAuthenticated} onLogout={handleLogout} />
         <div className="content">
           <Routes>
-            {/* Authentication Routes */}
-            <Route path="/login" element={<Login onLogin={handleLogin} />} />
-            <Route path="/register" element={<Register />} />
+            {/* Redirect from root to view-forms if authenticated */}
+            <Route path="/" element={<Navigate to={isAuthenticated ? "/view-forms" : "/login"} />} />
+            
+            {/* Authentication Route */}
+            <Route path="/login" element={isAuthenticated ? <Navigate to="/view-forms" /> : <Login onLogin={handleLogin} />} />
 
-            {/* Main App Routes */}
-            <Route path="/" element={<FormBuilder />} />
-            <Route path="/view-forms" element={<ViewForms />} />
-            <Route path="/configuration" element={<Configuration />} />
-            <Route path="/forms/:formName" element={<FormDisplay />} /> {/* Route for dynamic form */}
+            {/* Protected Routes */}
+            <Route
+              path="/view-forms"
+              element={isAuthenticated ? <ViewForms /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/form-builder"
+              element={isAuthenticated ? <FormBuilder /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/configuration"
+              element={isAuthenticated ? <Configuration /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/forms/:formName"
+              element={isAuthenticated ? <FormDisplay /> : <Navigate to="/login" />}
+            />
           </Routes>
         </div>
       </Router>

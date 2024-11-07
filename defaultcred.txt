@@ -1,0 +1,3 @@
+admin_user:soaring42
+dev_user:soardev
+read_user:soaruser

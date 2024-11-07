@@ -3,9 +3,16 @@ const express = require('express');
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const cors = require('cors');
 
-const app = express();
-app.use(express.json());
+const app = express(); // Initialize the Express app
+
+// Allow CORS requests from your frontend
+app.use(cors({
+  origin: 'http://localhost:3000' // Replace with your frontend's actual URL
+}));
+
+app.use(express.json()); // Parse incoming JSON requests
 
 // Configure PostgreSQL connection pool
 const pool = new Pool({
@@ -16,25 +23,38 @@ const pool = new Pool({
   port: process.env.PG_PORT,
 });
 
-// Register Route
-app.post('/register', async (req, res) => {
-  const { username, password } = req.body;
+// Middleware to verify token
+const authenticate = (req, res, next) => {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+  if (!token) return res.status(401).send('Access Denied');
 
   try {
-    // Hash the password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Insert the new user into the database
-    const result = await pool.query(
-      'INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id',
-      [username, hashedPassword]
-    );
-
-    res.status(201).json({ userId: result.rows[0].id, message: 'User registered successfully' });
+    const verified = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = verified;
+    next();
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Error registering user');
+    res.status(400).send('Invalid token');
+  }
+};
+
+// Configuration Save Endpoint
+app.post('/configuration', authenticate, async (req, res) => {
+  const { server, ph_auth_token, ssl_verification } = req.body;
+
+  try {
+    // Insert the configuration data into the correct table
+    const query = `
+      INSERT INTO configurations (server, ph_auth_token, ssl_verification, created_at, updated_at)
+      VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      RETURNING *;
+    `;
+
+    const result = await pool.query(query, [server, ph_auth_token, ssl_verification]);
+
+    res.json({ message: 'Configuration saved successfully', config: result.rows[0] });
+  } catch (err) {
+    console.error('Error saving configuration:', err);
+    res.status(500).json({ message: 'Internal server error', error: err.message });
   }
 });
 
@@ -67,24 +87,10 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// Middleware to verify token
-const authenticate = (req, res, next) => {
-  const token = req.header('Authorization').replace('Bearer ', '');
-  if (!token) return res.status(401).send('Access Denied');
-
-  try {
-    const verified = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = verified;
-    next();
-  } catch (err) {
-    res.status(400).send('Invalid token');
-  }
-};
-
 // Protected Route Example
 app.get('/protected', authenticate, (req, res) => {
   res.send('This is a protected route');
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
