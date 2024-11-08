@@ -11,63 +11,76 @@ const Configuration = () => {
   const saveConfiguration = async () => {
     try {
       const parsedConfig = JSON.parse(jsonConfig);
-      const configWithSSL = { ...parsedConfig, sslVerification };
-    
-      // Save to localStorage as before
-      localStorage.setItem('soarConfig', JSON.stringify(configWithSSL));
-    
-      // Use the IP address of the Linux server instead of localhost
-      const linuxServerUrl = 'http://localhost:5000/configuration'; // Replace with your Linux server IP
-  
-      // Save to backend
-      await axios.post(linuxServerUrl, {
+
+      // Ensure required fields are present
+      if (!parsedConfig.server || !parsedConfig['ph-auth-token']) {
+        throw new Error('Missing required fields: server or ph-auth-token');
+      }
+
+      // Backend URL (replace with your actual backend IP/domain)
+      const backendUrl = 'http://localhost:5000/configuration';
+
+      // Send data to the backend
+      const response = await axios.post(backendUrl, {
         server: parsedConfig.server,
         ph_auth_token: parsedConfig['ph-auth-token'],
         ssl_verification: sslVerification,
-      }, {
-        headers: {
-          'Authorization': `Bearer <your_jwt_token>` // Ensure you pass the JWT if needed
-        }
       });
-  
-      alert('Configuration saved successfully!');
+
+      if (response.status === 200) {
+        alert('Configuration sent successfully!');
+      } else {
+        throw new Error(`Failed with status code: ${response.status}`);
+      }
     } catch (error) {
       if (error instanceof SyntaxError) {
         alert('Invalid JSON. Please check your input.');
         console.error('JSON parsing error:', error.message);
+      } else if (error.response) {
+        // Server responded with a status outside the 2xx range
+        alert(`Failed to send configuration: ${error.response.data.message || error.response.statusText}`);
+        console.error('Server error:', error.response);
+      } else if (error.request) {
+        // Request was made but no response received
+        alert('No response received from server. Please check the server status.');
+        console.error('Network error:', error.request);
       } else {
-        alert(`Failed to save configuration: ${error.message}`);
+        alert(`Failed to send configuration: ${error.message}`);
         console.error('Error during save configuration:', error);
       }
     }
   };
-  
 
   const testConnection = async () => {
     setConnectionStatus('Testing connection...');
     try {
-      // Retrieve configuration from localStorage
-      const config = JSON.parse(localStorage.getItem('soarConfig')) || {};
-      const { server, 'ph-auth-token': authToken } = config;
-
-      // Ensure required fields are provided
-      if (!server || !authToken) {
+      // Fetch the server and ph_auth_token from the backend
+      const configResponse = await axios.get('http://localhost:5000/test_connection');
+  
+      if (configResponse.status !== 200) {
+        throw new Error('Failed to fetch configuration for test connection');
+      }
+  
+      const { server, ph_auth_token } = configResponse.data;
+  
+      // Ensure required fields are present
+      if (!server || !ph_auth_token) {
         throw new Error('Missing server URL or auth token in configuration');
       }
-
+  
       const apiUrl = `${server}/rest/version`;
       console.log('Sending request to', apiUrl);
-
+  
       // Perform a test connection to the server
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
-          'ph-auth-token': authToken,
+          'ph-auth-token': ph_auth_token,
           'Content-Type': 'application/json',
         },
         mode: 'cors',
       });
-
+  
       if (response.ok) {
         const data = await response.json();
         setConnectionStatus(`Connection successful: Version ${data.version}`);
@@ -79,6 +92,7 @@ const Configuration = () => {
       setConnectionStatus(`Connection failed: ${error.message}`);
     }
   };
+  
 
   return (
     <div className="configuration-container">
@@ -102,7 +116,7 @@ const Configuration = () => {
 
         <div className="button-container">
           <Button
-            label="Save Configuration"
+            label="Send Configuration"
             appearance="primary"
             onClick={saveConfiguration}
             style={{ backgroundColor: '#007BFF', color: '#ffffff' }} // Inline style for custom color

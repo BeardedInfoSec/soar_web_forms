@@ -17,13 +17,24 @@ const ViewForms = () => {
   };
 
   useEffect(() => {
-    const savedForms = Object.keys(localStorage)
-      .map((key) => {
-        const xmlData = localStorage.getItem(key);
-        return parseXML(xmlData);
-      })
-      .filter((form) => form.name); // Exclude invalid forms
-    setForms(savedForms);
+    const fetchForms = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/forms'); // Update with your backend URL
+        if (!response.ok) {
+          throw new Error(`Failed to fetch forms: ${response.status}`);
+        }
+        const data = await response.json();
+        // Include the ID and parse XML data
+        setForms(data.map(form => ({
+          id: form.id, // Store the ID for deletion
+          ...parseXML(form.xml_data) // Parse XML from the database
+        })));
+      } catch (error) {
+        console.error('Error fetching forms:', error);
+      }
+    };
+
+    fetchForms();
   }, []);
 
   const openForm = (formName) => {
@@ -36,21 +47,34 @@ const ViewForms = () => {
     setSelectedForms([]); // Clear selections when entering/exiting manage mode
   };
 
-  const handleCheckboxChange = (formName) => {
+  const handleCheckboxChange = (formId) => {
     setSelectedForms((prevSelected) =>
-      prevSelected.includes(formName)
-        ? prevSelected.filter((name) => name !== formName)
-        : [...prevSelected, formName]
+      prevSelected.includes(formId)
+        ? prevSelected.filter((id) => id !== formId)
+        : [...prevSelected, formId]
     );
   };
 
-  const deleteSelectedForms = () => {
-    selectedForms.forEach((formName) => {
-      localStorage.removeItem(formName);
-    });
-    setForms((prevForms) => prevForms.filter((form) => !selectedForms.includes(form.name)));
-    setSelectedForms([]); // Clear selected forms after deletion
-    setManageMode(false); // Exit manage mode
+  const deleteSelectedForms = async () => {
+    try {
+      await Promise.all(
+        selectedForms.map(async (formId) => {
+          const response = await fetch(`http://localhost:5000/forms/${formId}`, { // Use form.id for deletion
+            method: 'DELETE',
+          });
+          if (!response.ok) {
+            throw new Error(`Failed to delete form: ${response.status}`);
+          }
+        })
+      );
+
+      // Update the forms state after deletion
+      setForms((prevForms) => prevForms.filter((form) => !selectedForms.includes(form.id))); // Filter by ID
+      setSelectedForms([]); // Clear selected forms after deletion
+      setManageMode(false); // Exit manage mode
+    } catch (error) {
+      console.error('Error deleting forms:', error);
+    }
   };
 
   return (
@@ -67,13 +91,13 @@ const ViewForms = () => {
       )}
 
       <ul className="form-list">
-        {forms.map((form, index) => (
-          <li key={index} className="form-card">
+        {forms.map((form) => (
+          <li key={form.id} className="form-card"> {/* Use form.id as the key */}
             {manageMode && (
               <input
                 type="checkbox"
-                checked={selectedForms.includes(form.name)}
-                onChange={() => handleCheckboxChange(form.name)}
+                checked={selectedForms.includes(form.id)} // Check by form ID
+                onChange={() => handleCheckboxChange(form.id)} // Pass form ID to handler
                 className="form-checkbox"
               />
             )}
