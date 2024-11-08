@@ -18,8 +18,8 @@ const Login = ({ onLogin }) => {
         password,
       });
 
-      // Get the token from the response
-      const { token } = response.data;
+      // Get the token, role, and username from the response
+      const { token, role, username: loggedInUser } = response.data;
 
       // Store the token in localStorage for session management
       localStorage.setItem('token', token);
@@ -28,24 +28,20 @@ const Login = ({ onLogin }) => {
       setError('');
 
       // Call the onLogin callback to update the authenticated state in App
-      onLogin();
+      onLogin(role, loggedInUser); // Pass role and username to the parent component
     } catch (err) {
       console.error('Login failed:', err);
 
       // Check if the error response is available
       if (err.response) {
         if (err.response.data && err.response.data.message) {
-          // Server responded with a message
           setError(err.response.data.message);
         } else {
-          // No specific message, return a general error
           setError('Error: ' + err.response.status + ' ' + err.response.statusText);
         }
       } else if (err.request) {
-        // The request was made, but no response was received
         setError('No response from server. Please try again later.');
       } else {
-        // Something else happened
         setError('Unexpected error: ' + err.message);
       }
     }

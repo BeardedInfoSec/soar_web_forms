@@ -3,16 +3,42 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import './FormDisplay.css';
 
-// Move authInfo to the top so it's accessible globally
-const authInfo = {
-    token: 'API',
-    server: 'https://192.168.50.160',
+// Initial hardcoded authInfo
+let authInfo = {
+    token: '',
+    server: '',
 };
 
 const FormDisplay = () => {
     const { formName } = useParams(); // Get form name from the URL
     const [formData, setFormData] = useState(null);
     const [formValues, setFormValues] = useState({}); // Store user input
+
+    // Function to fetch auth info from the configuration table
+    const fetchAuthInfo = async () => {
+        try {
+            const response = await fetch('/api/configuration'); // Call the API endpoint
+            if (!response.ok) {
+                throw new Error('Failed to fetch auth info');
+            }
+            const data = await response.json();
+            // Update authInfo with fetched values
+            authInfo = {
+                token: data.ph_auth_token,
+                server: data.server,
+            };
+
+            // Log the server value and auth token
+            console.log('Updated Server:', authInfo.server); // Log server value
+            console.log('Updated Auth Token:', authInfo.token); // Log auth token
+        } catch (error) {
+            console.error('Error fetching auth info:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchAuthInfo(); // Fetch auth info when the component mounts
+    }, []);
 
     const parseXML = (xmlString) => {
         const parser = new DOMParser();
@@ -39,17 +65,37 @@ const FormDisplay = () => {
     };
 
     useEffect(() => {
-        const data = localStorage.getItem(formName);
-        if (data) {
+        const fetchFormData = async () => {
             try {
-                const parsedData = parseXML(data);
-                setFormData(parsedData);
+                const response = await fetch(`http://localhost:5000/forms/${encodeURIComponent(formName)}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authInfo.token}`, // Use the updated token
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                // Log the response for debugging
+                const responseText = await response.text();
+                console.log('Full response text:', responseText);
+
+                // Check if response is valid JSON
+                if (!response.ok) {
+                    throw new Error('Form not found');
+                }
+
+                const data = JSON.parse(responseText); // Attempt parsing only if the response is correct
+                if (data.xml_data) {
+                    const parsedData = parseXML(data.xml_data);
+                    setFormData(parsedData);
+                } else {
+                    console.error('No XML data found in the response');
+                }
             } catch (error) {
-                console.error('Error parsing XML:', error);
+                console.error('Error fetching form data:', error);
             }
-        } else {
-            console.error('Form not found:', formName);
-        }
+        };
+
+        fetchFormData();
     }, [formName]);
 
     const handleInputChange = (key, value) => {
@@ -132,12 +178,11 @@ const FormDisplay = () => {
     };
 
     const createContainer = async (name, label) => {
-        const { token, server } = authInfo;
-        const response = await fetch(`${server}/rest/container`, {
+        const response = await fetch(`${authInfo.server}/rest/container`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'ph-auth-token': token,
+                'ph-auth-token': authInfo.token,
             },
             body: JSON.stringify({
                 name,
@@ -154,12 +199,11 @@ const FormDisplay = () => {
     };
 
     const addArtifact = async (containerId, cefData, artifactName) => {
-        const { token, server } = authInfo;
-        const response = await fetch(`${server}/rest/artifact`, {
+        const response = await fetch(`${authInfo.server}/rest/artifact`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'ph-auth-token': token,
+                'ph-auth-token': authInfo.token,
             },
             body: JSON.stringify({
                 container_id: containerId,

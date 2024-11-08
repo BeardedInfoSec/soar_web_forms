@@ -1,0 +1,80 @@
+/* Container Styling */
+.grant-permissions-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Full height of the viewport */
+  background-color: var(--splunk-background-default); /* Background color */
+  color: var(--splunk-text-default);
+}
+
+/* Box Styling */
+.grant-permissions-box {
+  background-color: #1A1C20; /* Dark background for the card */
+  border-radius: 8px;
+  box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.3);
+  padding: 30px 40px; /* Padding for the box */
+  max-width: 400px;
+  width: 100%;
+  text-align: center; /* Center text */
+}
+
+/* Header Styling */
+.grant-permissions-box h2 {
+  font-size: 26px;
+  font-weight: bold;
+  color: var(--splunk-text-primary); /* Primary text color */
+  margin-bottom: 20px;
+}
+
+/* Input Styling */
+.grant-permissions-box input {
+  width: 100%; /* Full width */
+  padding: 12px 15px; /* Padding for spacing */
+  border-radius: 6px; /* Rounded corners */
+  border: 1px solid var(--splunk-border-default); /* Border color */
+  background-color: var(--splunk-background-secondary); /* Background color */
+  color: var(--splunk-text-primary); /* Text color */
+  font-size: 16px; /* Font size */
+  margin-bottom: 20px; /* Spacing between inputs */
+  box-sizing: border-box; /* Ensures padding doesn't affect width */
+}
+
+/* Select Styling */
+.grant-permissions-box select {
+  width: 100%; /* Full width */
+  padding: 12px 15px; /* Padding for spacing */
+  border-radius: 6px; /* Rounded corners */
+  border: 1px solid var(--splunk-border-default); /* Border color */
+  background-color: var(--splunk-background-secondary); /* Background color */
+  color: var(--splunk-text-primary); /* Text color */
+  font-size: 16px; /* Font size */
+  margin-bottom: 20px; /* Spacing below the select */
+}
+
+/* Button Styling */
+.grant-permissions-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  background-color: var(--splunk-button-primary-background); /* Primary button background */
+  color: var(--splunk-button-primary-text); /* Button text color */
+}
+
+.grant-permissions-button:hover {
+  background-color: var(--splunk-button-primary-background-hover); /* Change color on hover */
+}
+
+/* Error and Success Messages */
+.error {
+  color: #d9534f; /* Error color */
+  margin-top: 10px;
+}
+
+.success {
+  color: #5cb85c; /* Success color */
+  margin-top: 10px;
+}

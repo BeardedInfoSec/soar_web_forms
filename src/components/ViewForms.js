@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import './ViewForms.css';
 
-const ViewForms = () => {
+const ViewForms = ({ userRole }) => {
   const [forms, setForms] = useState([]);
   const [manageMode, setManageMode] = useState(false); // Toggle for manage mode
   const [selectedForms, setSelectedForms] = useState([]); // Track selected forms for deletion
@@ -38,9 +38,10 @@ const ViewForms = () => {
   }, []);
 
   const openForm = (formName) => {
-    const url = `/forms/${formName}`;
-    window.open(url, '_blank');
+    const url = `/forms/${encodeURIComponent(formName)}`;
+    window.open(url, '_blank'); // Ensure this properly opens a new tab without affecting session
   };
+  
 
   const toggleManageMode = () => {
     setManageMode(!manageMode);
@@ -80,20 +81,26 @@ const ViewForms = () => {
   return (
     <div className="view-forms-container">
       <h2>View Forms</h2>
-      <button className="manage-button" onClick={toggleManageMode}>
-        {manageMode ? 'Cancel' : 'Manage Forms'}
-      </button>
 
-      {manageMode && (
-        <button className="delete-selected-button" onClick={deleteSelectedForms} disabled={selectedForms.length === 0}>
-          Delete Selected
-        </button>
+      {/* Show the "Manage Forms" and "Delete Selected" buttons only for "developer" and "admin" roles */}
+      {(userRole === 'developer' || userRole === 'admin') && (
+        <>
+          <button className="manage-button" onClick={toggleManageMode}>
+            {manageMode ? 'Cancel' : 'Manage Forms'}
+          </button>
+
+          {manageMode && (
+            <button className="delete-selected-button" onClick={deleteSelectedForms} disabled={selectedForms.length === 0}>
+              Delete Selected
+            </button>
+          )}
+        </>
       )}
 
       <ul className="form-list">
         {forms.map((form) => (
           <li key={form.id} className="form-card"> {/* Use form.id as the key */}
-            {manageMode && (
+            {manageMode && (userRole === 'developer' || userRole === 'admin') && (
               <input
                 type="checkbox"
                 checked={selectedForms.includes(form.id)} // Check by form ID
