@@ -60,79 +60,77 @@ useEffect(() => {
   loadSavedForms();
 }, []);
 
-const loadSavedForms = () => {
-  const formKeys = Object.keys(localStorage).filter(key => {
-    const data = localStorage.getItem(key);
-    return data && data.includes('<form>');
-  });
-  setSavedForms(formKeys);
+
+const loadSavedForms = async () => {
+  try {
+    const response = await fetch('http://localhost:5000/forms');
+    if (!response.ok) {
+      throw new Error(`Failed to fetch forms: ${response.status}`);
+    }
+    const data = await response.json();
+    const loadedForms = data.map(form => ({
+      id: form.id, // Ensure this is present
+      name: form.name // Ensure this is present
+    }));
+    setSavedForms(loadedForms); // Set the forms to state
+  } catch (error) {
+    console.error('Error loading forms:', error);
+  }
 };
 
-const loadForm = () => {
+
+const loadForm = async () => {
   if (!selectedForm) {
     alert('Please select a form to load.');
     return;
   }
 
-  // Clear existing elements and set the form to load afterward
-  setFormElements([]); 
-  setFormToLoad(selectedForm);
+  try {
+    // Use the endpoint that searches by form name
+    const response = await fetch(`http://localhost:5000/forms/${encodeURIComponent(selectedForm)}`);
+    if (!response.ok) {
+      throw new Error(`Failed to load form: ${response.status}`);
+    }
+
+    const formData = await response.json();
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(formData.xml_data, 'application/xml');
+    const loadedName = xmlDoc.querySelector('form > name')?.textContent || '';
+    const loadedLabel = xmlDoc.querySelector('form > label')?.textContent || '';
+    const loadedTags = Array.from(xmlDoc.querySelectorAll('form > tags > tag')).map(tag => tag.textContent);
+
+    const elements = Array.from(xmlDoc.querySelectorAll('elements > element')).map((el, index) => {
+      const type = el.querySelector('type')?.textContent || 'text';
+      const optionsNode = el.querySelector('dropdownOptions');
+      const options = optionsNode ? Array.from(optionsNode.querySelectorAll('option')).map(opt => opt.textContent) : [];
+
+      return {
+        id: `element-${Date.now()}-${index}`,
+        type,
+        key: el.querySelector('key')?.textContent || '',
+        label: el.querySelector('label')?.textContent || '',
+        required: el.querySelector('required')?.textContent === 'true',
+        alignment: el.querySelector('alignment')?.textContent || 'center',
+        settings: {
+          headerLevel: el.querySelector('headerLevel')?.textContent || 'h1',
+          placeholder: el.querySelector('placeholder')?.textContent || '',
+          dropdownOptions: options,
+        }
+      };
+    }).filter(el => el.type !== 'button'); // Exclude submit button
+
+    setFormName(loadedName);
+    setFormLabel(loadedLabel);
+    setFormTags(loadedTags.join(', '));
+    setFormElements(elements);
+
+    console.log(`Form "${selectedForm}" loaded successfully!`);
+  } catch (error) {
+    console.error('Error loading form:', error);
+    alert('Failed to load form data.');
+  }
 };
 
-useEffect(() => {
-  // When formElements is cleared, load the new form
-  if (formToLoad && formElements.length === 0) {
-    const savedData = localStorage.getItem(formToLoad);
-    if (!savedData) {
-      alert(`No saved form found for the name "${formToLoad}"`);
-      setFormToLoad(null); // Reset formToLoad if not found
-      return;
-    }
-
-    try {
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(savedData, 'application/xml');
-      const loadedName = xmlDoc.querySelector('form > name')?.textContent || '';
-      const loadedLabel = xmlDoc.querySelector('form > label')?.textContent || '';
-      const loadedTags = Array.from(xmlDoc.querySelectorAll('form > tags > tag')).map(tag => tag.textContent);
-
-      const elements = Array.from(xmlDoc.querySelectorAll('elements > element'))
-        .map((el, index) => {
-          const type = el.querySelector('type')?.textContent || 'text';
-          const optionsNode = el.querySelector('dropdownOptions');
-          const options = optionsNode ? Array.from(optionsNode.querySelectorAll('option')).map(opt => opt.textContent) : [];
-
-          return {
-            id: `element-${Date.now()}-${index}`, // Generate a unique ID using Date.now() and the index
-            type,
-            key: el.querySelector('key')?.textContent || '',
-            label: el.querySelector('label')?.textContent || '',
-            required: el.querySelector('required')?.textContent === 'true',
-            alignment: el.querySelector('alignment')?.textContent || 'center',
-            settings: {
-              headerLevel: el.querySelector('headerLevel')?.textContent || 'h1',
-              placeholder: el.querySelector('placeholder')?.textContent || '',
-              dropdownOptions: options,
-            }
-          };
-        })
-        .filter(el => el.type !== 'button' && el.id !== SUBMIT_BUTTON_ID); // Exclude the submit button
-
-      // Set new form data
-      setFormName(loadedName);
-      setFormLabel(loadedLabel);
-      setFormTags(loadedTags.join(', '));
-      setFormElements(elements);
-      setFormToLoad(null); // Reset formToLoad after loading
-
-      console.log(`Form "${formToLoad}" loaded successfully!`);
-    } catch (error) {
-      console.error('Error loading form:', error);
-      alert('Failed to load form data.');
-      setFormToLoad(null); // Reset formToLoad on error
-    }
-  }
-}, [formElements, formToLoad]); // Only run this effect when formElements or formToLoad changes
 
 const addSubmitButton = () => {
   setFormElements(prev => [
@@ -233,53 +231,73 @@ const addSubmitButton = () => {
     }
   };
   
-  const saveForm = () => {
+  const saveForm = async () => {
     if (!formName) {
       alert('Please enter a name for the form.');
       return;
     }
-  
+
     const formData = {
       name: formName,
       label: formLabel,
-      tags: formTags ? formTags.split(',').map(tag => tag.trim()) : [], // Split tags by comma
+      tags: formTags ? formTags.split(',').map(tag => tag.trim()) : [],
       elements: formElements,
     };
-  
+
+    // Convert form data to XML
     const convertToXML = (obj) => {
       let xml = '';
-    
       for (let key in obj) {
         if (Array.isArray(obj[key])) {
-          if (key === 'dropdownOptions') {
-            xml += `<${key}>`;
-            obj[key].forEach((option) => {
-              xml += `<option>${option}</option>`;
-            });
-            xml += `</${key}>`;
-          } else {
-            xml += `<${key}>`;
-            obj[key].forEach((element) => {
-              xml += `<element>${convertToXML(element)}</element>`;
-            });
-            xml += `</${key}>`;
-          }
+          xml += `<${key}>`;
+          obj[key].forEach((element) => {
+            xml += `<element>${convertToXML(element)}</element>`;
+          });
+          xml += `</${key}>`;
         } else if (typeof obj[key] === 'object') {
           xml += `<${key}>${convertToXML(obj[key])}</${key}>`;
         } else {
           xml += `<${key}>${obj[key]}</${key}>`;
         }
       }
-    
       return xml;
     };
-    
-    
-    
+
     const xmlData = `<form>${convertToXML(formData)}</form>`;
-    localStorage.setItem(formName, xmlData);
-    alert(`Form "${formName}" saved successfully!`);
+
+    // Store form data in the PostgreSQL backend
+    try {
+      const response = await fetch('http://localhost:5000/save_form', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formName,
+          label: formLabel,
+          tags: formTags ? formTags.split(',').map(tag => tag.trim()) : [],
+          elements: formElements,
+          xmlData: xmlData // Include XML data in the request
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to save form: ${response.status} ${response.statusText}`);
+      }
+
+      alert(`Form "${formName}" saved successfully!`);
+      localStorage.setItem(formName, xmlData); // Still save to local storage
+      
+      // Call loadSavedForms to refresh the dropdown
+      loadSavedForms(); // Automatically refresh the dropdown after saving
+
+    } catch (error) {
+      console.error('Error:', error);
+      alert(`Error saving form: ${error.message}`);
+    }
   };
+
+  
   
   const removeElement = (id) => {
     if (id === SUBMIT_BUTTON_ID) return; // Prevent deletion of the Submit button
@@ -815,22 +833,22 @@ const addSubmitButton = () => {
     </div>
   </div>
   <div className="load-section" style={{ marginBottom: '20px' }}>
-    <label htmlFor="saved-forms" className="sidebar-label">Load Saved Form:</label>
-    <select
-      id="saved-forms"
-      value={selectedForm}
-      onChange={(e) => setSelectedForm(e.target.value)}
-      className="sidebar-select"
-    >
-      <option value="">-- Select a Form --</option>
-      {savedForms.map((formName) => (
-        <option key={formName} value={formName}>
-          {formName}
-        </option>
-      ))}
-    </select>
-    <button onClick={loadForm} className="load-form-button">Load Form</button>
-  </div>
+  <label htmlFor="saved-forms" className="sidebar-label">Load Saved Form:</label>
+  <select
+    id="saved-forms"
+    value={selectedForm}
+    onChange={(e) => setSelectedForm(e.target.value)}
+    className="sidebar-select"
+  >
+    <option value="">-- Select a Form --</option>
+    {savedForms.map((form) => (
+      <option key={form.id} value={form.name}> {/* Ensure you're using form.name */}
+        {form.name} {/* This should render a string */}
+      </option>
+    ))}
+  </select>
+  <button onClick={loadForm} className="load-form-button">Load Form</button>
+</div>
   <button onClick={saveForm} className="save-form-button">Save Form</button>
   <button onClick={handleResetForm} className="reset-form-button">Reset Form</button>
 </div>

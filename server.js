@@ -196,6 +196,44 @@ app.get('/forms', async (req, res) => {
   }
 });
 
+app.get('/forms/:name', async (req, res) => {
+  const name = decodeURIComponent(req.params.name); // Decode the form name from the URL
+
+  try {
+    // Ensure that the query treats `name` as a string
+    const query = 'SELECT name, label, tags, elements, xml_data FROM forms WHERE name = $1';
+    const result = await pool.query(query, [name]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Form not found' });
+    }
+
+    res.status(200).json(result.rows[0]); // Return the form data
+  } catch (error) {
+    console.error('Error fetching form:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+app.get('/forms/:id', async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) {
+    return res.status(400).json({ message: 'Invalid ID format' });
+  }
+
+  try {
+    const query = 'SELECT * FROM forms WHERE id = $1';
+    const result = await pool.query(query, [id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Form not found' });
+    }
+
+    res.status(200).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error fetching form:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 // Delete Form Endpoint
 app.delete('/forms/:id', async (req, res) => {
   const id = parseInt(req.params.id); // Convert the ID to an integer
@@ -220,46 +258,11 @@ app.delete('/forms/:id', async (req, res) => {
 });
 
 
-app.get('/forms/:name', async (req, res) => {
-  const name = decodeURIComponent(req.params.name); // Decode the form name from the URL
 
-  try {
-    // Ensure that the query treats `name` as a string
-    const query = 'SELECT name, label, tags, elements, xml_data FROM forms WHERE name = $1';
-    const result = await pool.query(query, [name]);
 
-    if (result.rowCount === 0) {
-      return res.status(404).json({ message: 'Form not found' });
-    }
-
-    res.status(200).json(result.rows[0]); // Return the form data
-  } catch (error) {
-    console.error('Error fetching form:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
 
 // Get Form by ID Endpoint - OLD AND WORKING FOR FORM BUILDER
-app.get('/forms/:id', async (req, res) => {
-  const id = parseInt(req.params.id, 10);
-  if (isNaN(id)) {
-    return res.status(400).json({ message: 'Invalid ID format' });
-  }
 
-  try {
-    const query = 'SELECT * FROM forms WHERE id = $1';
-    const result = await pool.query(query, [id]);
-
-    if (result.rowCount === 0) {
-      return res.status(404).json({ message: 'Form not found' });
-    }
-
-    res.status(200).json(result.rows[0]);
-  } catch (error) {
-    console.error('Error fetching form:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
 
 
 app.post('/admin/create-user', async (req, res) => {
