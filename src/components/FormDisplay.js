@@ -17,7 +17,7 @@ const FormDisplay = () => {
     // Function to fetch auth info from the configuration table
     const fetchAuthInfo = async () => {
         try {
-            const response = await fetch('/api/configuration'); // Call the API endpoint
+            const response = await fetch('http:localhost:5000/api/configuration'); // Call the API endpoint
             if (!response.ok) {
                 throw new Error('Failed to fetch auth info');
             }
@@ -197,6 +197,8 @@ const FormDisplay = () => {
         }
         return response.json();
     };
+    
+    
 
     const addArtifact = async (containerId, cefData, artifactName) => {
         const response = await fetch(`${authInfo.server}/rest/artifact`, {
