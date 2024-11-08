@@ -94,19 +94,19 @@ app.post('/configuration', async (req, res) => {
 });
 
 app.get('/api/configuration', async (req, res) => {
-  try {
-      const result = await getConfiguration(); // Fetch configuration
-      if (result.rowCount === 0) {
-          console.warn('No configuration found in the database'); // Log warning for no configuration
-          return res.status(404).json({ message: 'No configuration found' });
-      }
-      
-      console.log('Configuration fetched successfully:', result.rows[0]); // Log successful fetch
-      res.status(200).json(result.rows[0]); // Return the configuration data
-  } catch (error) {
-      console.error('Error fetching configuration:', error);
-      res.status(500).json({ message: 'Internal server error', error: error.message }); // Include error message for debugging
-  }
+    try {
+        const result = await getConfiguration(); // Fetch configuration
+        if (result.rowCount === 0) {
+            console.warn('No configuration found in the database'); // Log warning for no configuration
+            return res.status(404).json({ message: 'No configuration found' });
+        }
+        
+        console.log('Configuration fetched successfully:', result.rows[0]); // Log successful fetch
+        res.status(200).json(result.rows[0]); // Return the configuration data
+    } catch (error) {
+        console.error('Error fetching configuration:', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message }); // Include error message for debugging
+    }
 });
 
 

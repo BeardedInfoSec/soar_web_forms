@@ -32,7 +32,7 @@ const GrantPermissions = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/grant-permissions', {
+      const response = await axios.post('http://localhost:5000/admin/grant-permissions', {
         username: selectedUser, // Use selectedUser for username
         role,
       });
