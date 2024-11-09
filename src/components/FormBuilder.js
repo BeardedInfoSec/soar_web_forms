@@ -153,47 +153,47 @@ const addSubmitButton = () => {
   };
   
   const addElement = (type) => {
-    const newKey = generateKey(type); // Generate the key
+    const newKey = generateKey(type);
     const newElement = {
-      id: Date.now().toString(),
-      type,
-      key: newKey, // Assign the generated key
-      label: type === 'heading' ? 'Heading' : type,
-      alignment: 'center',
-      settings: {
-        headerLevel: 'h1',
-        placeholder:
-        type === 'email'
-          ? 'Email Address'
-          : type === 'password'
-          ? 'Enter password'
-          : 'Enter text here...',
-        useCurrentDate: false,
-        defaultBoolean: 'true',
-        dropdownOptions: [],
-        min: '',
-        max: '',
-        step: '',
-        defaultValue: '',
-        showPasswordOption: false,
-        passwordLength: '',
-        requireSymbols: false,
-        requireNumbers: false,
-        csvData: []
-      },
-      required: false,
-      textColor: '#ffffff',
-      fontFamily: 'Arial',
+        id: Date.now().toString(),
+        type,
+        key: newKey,
+        label: type === 'heading' ? 'Heading' : type,
+        alignment: 'center',
+        settings: {
+            headerLevel: 'h1',
+            placeholder: type === 'email' ? 'Email Address' : type === 'password' ? 'Enter password' : 'Enter text here...',
+            useCurrentDate: false,
+            defaultBoolean: 'true',
+            dropdownOptions: [],
+            min: '',
+            max: '',
+            step: '',
+            defaultValue: '',
+            showPasswordOption: false,
+            passwordLength: '',
+            requireSymbols: false,
+            requireNumbers: false,
+            csvData: []
+        },
+        required: false,
+        textColor: '#ffffff',
+        fontFamily: 'Arial',
     };
-  
-    // Ensure new elements are added before the Submit button
+
+    // Ensure new elements are added before the Submit button and prevent duplicates
     setFormElements((prev) => {
-      const submitIndex = prev.findIndex((el) => el.id === SUBMIT_BUTTON_ID);
-      const newFormElements = [...prev];
-      newFormElements.splice(submitIndex, 0, newElement); // Insert new element before submit button
-      return newFormElements;
+        // Check if an element of the same type already exists, if that's not desired
+        if (!prev.some((el) => el.type === type)) {
+            const submitIndex = prev.findIndex((el) => el.id === SUBMIT_BUTTON_ID);
+            const newFormElements = [...prev];
+            newFormElements.splice(submitIndex, 0, newElement); // Insert new element before the submit button
+            return newFormElements;
+        }
+        return prev;
     });
-  };
+};
+
 
   const isKeyUnique = (key) => {
     return !formElements.some((el) => el.key === key && el.id !== selectedElement?.id);
@@ -236,14 +236,14 @@ const addSubmitButton = () => {
       alert('Please enter a name for the form.');
       return;
     }
-
+  
     const formData = {
       name: formName,
       label: formLabel,
       tags: formTags ? formTags.split(',').map(tag => tag.trim()) : [],
-      elements: formElements,
+      elements: formElements, // Includes the populated csvData
     };
-
+  
     // Convert form data to XML
     const convertToXML = (obj) => {
       let xml = '';
@@ -251,7 +251,16 @@ const addSubmitButton = () => {
         if (Array.isArray(obj[key])) {
           xml += `<${key}>`;
           obj[key].forEach((element) => {
-            xml += `<element>${convertToXML(element)}</element>`;
+            if (Array.isArray(element)) {
+              // Handle CSV data as rows and cells
+              xml += '<row>';
+              element.forEach((cell) => {
+                xml += `<cell>${cell}</cell>`;
+              });
+              xml += '</row>';
+            } else {
+              xml += `<element>${convertToXML(element)}</element>`;
+            }
           });
           xml += `</${key}>`;
         } else if (typeof obj[key] === 'object') {
@@ -262,10 +271,10 @@ const addSubmitButton = () => {
       }
       return xml;
     };
-
+  
     const xmlData = `<form>${convertToXML(formData)}</form>`;
-
-    // Store form data in the PostgreSQL backend
+  
+    // Send form data to backend
     try {
       const response = await fetch('http://localhost:5000/save_form', {
         method: 'POST',
@@ -277,27 +286,25 @@ const addSubmitButton = () => {
           label: formLabel,
           tags: formTags ? formTags.split(',').map(tag => tag.trim()) : [],
           elements: formElements,
-          xmlData: xmlData // Include XML data in the request
+          xmlData: xmlData, // Include XML data in the request
         }),
       });
-
+  
       if (!response.ok) {
         throw new Error(`Failed to save form: ${response.status} ${response.statusText}`);
       }
-
+  
       alert(`Form "${formName}" saved successfully!`);
-      localStorage.setItem(formName, xmlData); // Still save to local storage
-      
-      // Call loadSavedForms to refresh the dropdown
-      loadSavedForms(); // Automatically refresh the dropdown after saving
-
+      localStorage.setItem(formName, xmlData); // Optional: save XML to local storage
+  
+      // Refresh saved forms after saving
+      loadSavedForms();
+  
     } catch (error) {
       console.error('Error:', error);
       alert(`Error saving form: ${error.message}`);
     }
   };
-
-  
   
   const removeElement = (id) => {
     if (id === SUBMIT_BUTTON_ID) return; // Prevent deletion of the Submit button
@@ -310,63 +317,74 @@ const addSubmitButton = () => {
   const handleEditClick = (element) => {
     setSelectedElement(element);
     setDraftSettings({
-      ...element.settings,
-      key: element.key || '',  // Populate the key value properly
-      label: element.label,
-      alignment: element.alignment,
-      required: element.required,
-      placeholder: element.settings?.placeholder,
-      isValid: element.settings?.isValid,
-      useCurrentDate: element.settings?.useCurrentDate,
-      defaultBoolean: element.settings?.defaultBoolean,
-      min: element.settings?.min,
-      max: element.settings?.max,
-      step: element.settings?.step,
-      defaultValue: element.settings?.defaultValue,
-      showPasswordOption: element.settings?.showPasswordOption,
-      passwordLength: element.settings?.passwordLength,
-      requireSymbols: element.settings?.requireSymbols,
-      requireNumbers: element.settings?.requireNumbers,
-      csvData: element.settings?.csvData || [],
+        ...element.settings,
+        key: element.key || '',
+        label: element.label,
+        alignment: element.alignment,
+        required: element.required,
+        placeholder: element.settings?.placeholder,
+        csvData: element.settings?.csvData || [], // Ensure csvData is included
     });
-  };
+};
+
   
   const applyDraftChanges = () => {
     if (selectedElement && draftSettings) {
-      if (isKeyUnique(draftSettings.key)) {
-        updateElementSettings(selectedElement.id, {
-          ...draftSettings,
-          key: draftSettings.key,  // Update the key
-        });
-        setSelectedElement(null);
-        setDraftSettings(null);
-      } else {
-        alert('The key must be unique. Please choose another.');
-      }
+        console.log('Applying draft changes:', { selectedElement, draftSettings });
+
+        if (isKeyUnique(draftSettings.key)) {
+            updateElementSettings(selectedElement.id, {
+                ...selectedElement,
+                ...draftSettings,
+                settings: {
+                    ...selectedElement.settings,
+                    ...draftSettings,
+                    csvData: draftSettings.csvData !== undefined
+                        ? draftSettings.csvData
+                        : selectedElement.settings.csvData, // Preserve csvData if not in draftSettings
+                },
+            });
+
+            console.log('Updated element:', selectedElement);
+            setSelectedElement(null);
+            setDraftSettings(null);
+        } else {
+            alert('The key must be unique. Please choose another.');
+        }
     }
-  };
-  
+};
+
+
   const cancelChanges = () => {
     setSelectedElement(null);
     setDraftSettings(null);
   };
 
   const updateElementSettings = (id, newSettings) => {
+    console.log('Updating element settings for ID:', id);
+    console.log('New settings before merge:', newSettings);
+
     setFormElements((prev) =>
-      prev.map((el) =>
-        el.id === id.toString()
-          ? {
-              ...el,
-              ...newSettings,
-              settings: {
-                ...el.settings,
-                ...newSettings,
-              },
-            }
-          : el
-      )
+        prev.map((el) =>
+            el.id === id.toString()
+                ? {
+                    ...el,
+                    ...newSettings,
+                    settings: {
+                        ...el.settings,
+                        ...newSettings,
+                        csvData: newSettings.csvData !== undefined
+                            ? newSettings.csvData
+                            : el.settings.csvData, // Preserve existing csvData if not overwritten
+                    },
+                }
+                : el
+        )
     );
-  };
+
+    console.log('Updated form elements:', formElements);
+};
+
   
   const handleDragStart = ({ active }) => {
     setDraggingElement(active.id);
@@ -388,7 +406,6 @@ const addSubmitButton = () => {
         alert('Please upload a valid .csv file.');
         return;
       }
-      setSelectedFileName(file.name); // Update the selected file name
       Papa.parse(file, {
         complete: (result) => {
           const csvData = result.data;
@@ -397,12 +414,16 @@ const addSubmitButton = () => {
           setFormElements((prev) =>
             prev.map((el) =>
               el.id === elementId
-                ? { ...el, settings: { ...el.settings, csvData } }
+                ? {
+                    ...el,
+                    csvData, // Update the csvData property
+                    settings: { ...el.settings, csvData }
+                  }
                 : el
             )
           );
         },
-        header: false,
+        header: false, // Adjust as needed
       });
     }
   };

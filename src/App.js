@@ -62,46 +62,43 @@ const App = () => {
             <Router>
                 <Navbar isAuthenticated={isAuthenticated} onLogout={handleLogout} username={username} />
                 <div className="content">
-                    <Routes>
-                        <Route path="/" element={<Navigate to={isAuthenticated ? "/view-forms" : "/login"} />} />
-                        <Route path="/login" element={isAuthenticated ? <Navigate to="/view-forms" /> : <Login onLogin={handleLogin} />} />
-                        <Route
-                            path="/view-forms"
-                            element={isAuthenticated ? <ViewForms userRole={userRole} /> : <Navigate to="/login" />}
-                        />
-                        <Route
-                            path="/form-builder"
-                            element={isAuthenticated && (userRole === 'admin' || userRole === 'developer') ? <FormBuilder /> : <Navigate to="/login" />}
-                        />
-                        <Route
-                            path="/configuration"
-                            element={isAuthenticated && userRole === 'admin' ? <Configuration /> : <Navigate to="/login" />}
-                        />
-                        <Route
-                            path="/admin"
-                            element={isAuthenticated && userRole === 'admin' ? <AdminPage /> : <Navigate to="/login" />}
-                        />
-                        <Route
-                            path="/create-user"
-                            element={isAuthenticated && userRole === 'admin' ? <CreateUser /> : <Navigate to="/login" />}
-                        />
-                        <Route
-                            path="/reset-password"
-                            element={isAuthenticated && userRole === 'admin' ? <ResetPassword /> : <Navigate to="/login" />}
-                        />
-                        <Route
-                            path="/grant-permissions"
-                            element={isAuthenticated && userRole === 'admin' ? <GrantPermissions /> : <Navigate to="/login" />}
-                        />
-                        <Route
-                            path="/forms/:formName"
-                            element={
-                                isAuthenticated
-                                    ? <FormDisplay />
-                                    : <Navigate to="/login" />
-                            }
-                        />
-                    </Routes>
+                <Routes>
+    <Route path="/" element={<Navigate to={isAuthenticated ? "/view-forms" : "/login"} />} />
+    <Route path="/login" element={isAuthenticated ? <Navigate to="/view-forms" /> : <Login onLogin={handleLogin} />} />
+    <Route
+        path="/view-forms"
+        element={isAuthenticated && ['admin', 'developer', 'read_user'].includes(userRole) ? <ViewForms userRole={userRole} /> : <Navigate to="/login" />}
+    />
+    <Route
+        path="/form-builder"
+        element={isAuthenticated && ['admin', 'developer'].includes(userRole) ? <FormBuilder /> : <Navigate to="/login" />}
+    />
+    <Route
+        path="/configuration"
+        element={isAuthenticated && ['admin', 'developer'].includes(userRole) ? <Configuration /> : <Navigate to="/login" />}
+    />
+    <Route
+        path="/admin"
+        element={isAuthenticated && userRole === 'admin' ? <AdminPage /> : <Navigate to="/login" />}
+    />
+    <Route
+        path="/create-user"
+        element={isAuthenticated && userRole === 'admin' ? <CreateUser /> : <Navigate to="/login" />}
+    />
+    <Route
+        path="/reset-password"
+        element={isAuthenticated && userRole === 'admin' ? <ResetPassword /> : <Navigate to="/login" />}
+    />
+    <Route
+        path="/grant-permissions"
+        element={isAuthenticated && userRole === 'admin' ? <GrantPermissions /> : <Navigate to="/login" />}
+    />
+    <Route
+        path="/forms/:formName"
+        element={isAuthenticated ? <FormDisplay /> : <Navigate to="/login" />}
+    />
+</Routes>
+
                 </div>
             </Router>
         </SplunkThemeProvider>

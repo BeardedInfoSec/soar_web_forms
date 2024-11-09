@@ -43,24 +43,34 @@ const FormDisplay = () => {
         const xmlDoc = parser.parseFromString(xmlString, 'application/xml');
         const name = xmlDoc.querySelector('form > name')?.textContent || 'Unnamed Form';
         const label = xmlDoc.querySelector('form > label')?.textContent || 'event_data';
-
+    
         const elements = Array.from(xmlDoc.querySelectorAll('elements > element')).map((el) => {
+            const type = el.querySelector('type')?.textContent || 'text';
             const optionsNode = el.querySelector('dropdownOptions');
             const options = optionsNode ? Array.from(optionsNode.querySelectorAll('option')).map(opt => opt.textContent) : [];
-
+    
+            // Extract CSV data if present
+            const csvData = Array.from(el.querySelectorAll('settings > csvData > row')).map(row =>
+                Array.from(row.querySelectorAll('cell')).map(cell => cell.textContent)
+            );
+    
             return {
-                type: el.querySelector('type')?.textContent || 'text',
+                type,
                 key: el.querySelector('key')?.textContent || '',
                 label: el.querySelector('label')?.textContent || '',
                 required: el.querySelector('required')?.textContent === 'true',
                 placeholder: el.querySelector('placeholder')?.textContent || '',
                 alignment: el.querySelector('alignment')?.textContent || 'center',
-                options: options
+                options: options,
+                settings: {
+                    csvData: csvData.length > 0 ? csvData : [] // Ensure csvData is set correctly
+                }
             };
         });
-
+    
         return { name, label, elements };
     };
+    
 
     useEffect(() => {
         const fetchFormData = async () => {
@@ -123,20 +133,31 @@ const FormDisplay = () => {
             const containerResponse = await createContainer(formData.name, formData.label);
             const containerId = containerResponse.id;
             console.log('Container created successfully:', containerResponse);
-
-            // Add artifacts for each form field
-            const aggregatedCEF = Object.keys(formValues).reduce((acc, key) => {
-                if (!key.startsWith('file_')) {
-                    acc[key] = formValues[key];
+    
+            // Add artifacts for each form field and table data
+            const aggregatedCEF = {};
+            formData.elements.forEach((element) => {
+                if (element.type === 'table' && element.settings.csvData) {
+                    // Extract headers and transpose data by columns
+                    const headers = element.settings.csvData[0];
+                    const columns = headers.reduce((acc, header, colIndex) => {
+                        acc[header] = element.settings.csvData.slice(1).map(row => row[colIndex]).filter(cell => cell !== undefined && cell !== '');
+                        return acc;
+                    }, {});
+    
+                    // Merge column data into the aggregated CEF
+                    Object.assign(aggregatedCEF, columns);
+                } else if (!element.type.startsWith('file') && formValues[element.key] !== undefined) {
+                    // Include non-file form data
+                    aggregatedCEF[element.key] = formValues[element.key];
                 }
-                return acc;
-            }, {});
-
+            });
+    
             if (Object.keys(aggregatedCEF).length > 0) {
                 const artifactResponse = await addArtifact(containerId, aggregatedCEF, `${formData.name} Artifact`);
                 console.log('Artifact added successfully:', artifactResponse);
             }
-
+    
             // Upload files to the vault and add file metadata as artifacts
             for (const key in formValues) {
                 if (key.startsWith('file_')) {
@@ -147,11 +168,11 @@ const FormDisplay = () => {
                     const fileSize = formValues[`file_size_${key.split('_')[1]}`];
                     const fileSizeInKB = (fileSize / 1024).toFixed(2);
                     const fileSizeFormatted = fileSizeInKB > 1024 ? `${(fileSizeInKB / 1024).toFixed(2)} MB` : `${fileSizeInKB} KB`;
-
+    
                     if (fileData && fileName) {
                         const fileResponse = await uploadFileToVault(containerId, fileData, fileName);
                         console.log('File uploaded successfully:', fileResponse);
-
+    
                         // Add file metadata as artifact
                         const fileArtifactData = {
                             hash: fileResponse.hash,
@@ -166,14 +187,15 @@ const FormDisplay = () => {
                     }
                 }
             }
-
+    
             alert('Form submitted and data sent to Splunk SOAR successfully!');
         } catch (error) {
             console.error('Error submitting form:', error);
             alert('Failed to submit form data to Splunk SOAR.');
         }
     };
-
+    
+    
     const createContainer = async (name, label) => {
         const response = await fetch(`${authInfo.server}/rest/container`, {
             method: 'POST',
@@ -435,6 +457,68 @@ const FormDisplay = () => {
                         />
                     </div>
                 );
+
+        case 'table':
+            const tableData = element.settings?.csvData || [];
+
+            if (!Array.isArray(tableData) || tableData.length === 0) {
+                return (
+                    <div key={index} className="form-group" style={{ textAlign: element.alignment, marginBottom: '15px' }}>
+                        <label
+                            style={{
+                                display: 'block',
+                                marginBottom: '5px',
+                                fontWeight: 'bold',
+                                color: '#ffffff',
+                                textAlign: element.alignment,
+                            }}
+                        >
+                            {element.label}
+                        </label>
+                        <div>No CSV data to display</div>
+                    </div>
+                );
+            }
+
+            return (
+                <div key={index} className="form-group" style={{ textAlign: element.alignment, marginBottom: '15px' }}>
+                    {element.label && (
+                        <label
+                            style={{
+                                display: 'block',
+                                marginBottom: '5px',
+                                fontWeight: 'bold',
+                                color: '#ffffff',
+                                textAlign: element.alignment,
+                            }}
+                        >
+                            {element.label}
+                        </label>
+                    )}
+                    <table className="csv-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                            <tr>
+                                {Array.isArray(tableData[0]) && tableData[0].map((header, headerIndex) => (
+                                    <th key={headerIndex} style={{ border: '1px solid #ccc', padding: '8px', backgroundColor: '#333', color: '#fff' }}>
+                                        {header}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {tableData.slice(1).map((row, rowIndex) => (
+                                <tr key={rowIndex}>
+                                    {Array.isArray(row) && row.map((cell, cellIndex) => (
+                                        <td key={cellIndex} style={{ border: '1px solid #ccc', padding: '8px', textAlign: 'center' }}>
+                                            {cell}
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            );
             default:
                 return (
                     <div key={index} className="form-group" style={{ textAlign: element.alignment, marginBottom: '15px' }}>
