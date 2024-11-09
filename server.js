@@ -257,14 +257,6 @@ app.delete('/forms/:id', async (req, res) => {
   }
 });
 
-
-
-
-
-// Get Form by ID Endpoint - OLD AND WORKING FOR FORM BUILDER
-
-
-
 app.post('/admin/create-user', async (req, res) => {
   const { firstName, lastName, email, username, password, role } = req.body;
 

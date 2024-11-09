@@ -7,7 +7,9 @@ import './FormDisplay.css';
 let authInfo = {
     token: '',
     server: '',
+    sslVerification: true, // Default to true; will be updated from the configuration
 };
+
 
 const FormDisplay = () => {
     const { formName } = useParams(); // Get form name from the URL
@@ -17,7 +19,7 @@ const FormDisplay = () => {
     // Function to fetch auth info from the configuration table
     const fetchAuthInfo = async () => {
         try {
-            const response = await fetch('http:localhost:5000/api/configuration'); // Call the API endpoint
+            const response = await fetch('http://localhost:5000/api/configuration'); // Call the API endpoint
             if (!response.ok) {
                 throw new Error('Failed to fetch auth info');
             }
@@ -27,10 +29,6 @@ const FormDisplay = () => {
                 token: data.ph_auth_token,
                 server: data.server,
             };
-
-            // Log the server value and auth token
-            console.log('Updated Server:', authInfo.server); // Log server value
-            console.log('Updated Auth Token:', authInfo.token); // Log auth token
         } catch (error) {
             console.error('Error fetching auth info:', error);
         }
@@ -76,7 +74,6 @@ const FormDisplay = () => {
 
                 // Log the response for debugging
                 const responseText = await response.text();
-                console.log('Full response text:', responseText);
 
                 // Check if response is valid JSON
                 if (!response.ok) {
@@ -198,8 +195,6 @@ const FormDisplay = () => {
         return response.json();
     };
     
-    
-
     const addArtifact = async (containerId, cefData, artifactName) => {
         const response = await fetch(`${authInfo.server}/rest/artifact`, {
             method: 'POST',
