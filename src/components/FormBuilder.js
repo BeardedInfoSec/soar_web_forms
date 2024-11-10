@@ -432,8 +432,11 @@ const addElement = (type) => {
   const handleResetForm = () => {
     if (window.confirm('Are you sure you want to reset the form?')) {
       setFormElements([]);
+      setFormName('');
+      setFormLabel('');
     }
   };
+  
 
   const validatePassword = (password, settings) => {
     if (settings?.passwordLength && password.length < settings.passwordLength) {
