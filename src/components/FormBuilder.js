@@ -456,8 +456,15 @@ const addSubmitButton = () => {
     };
   
     // Use the element key as the default label if the label isn't set
-    const displayLabel = settings?.label || element.key || element.label;
-  
+    // const displayLabel = settings?.label || element.key || element.label;
+    const wrapperStyle = {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: settings?.alignment === 'left' ? 'flex-start' : settings?.alignment === 'right' ? 'flex-end' : 'center',
+      width: '100%',
+      marginBottom: '10px',
+    };
+
     switch (element.type) {
       case 'heading': {
         const HeaderTag = settings?.headerLevel || 'h1';
@@ -476,7 +483,7 @@ const addSubmitButton = () => {
         );
       }      
       case 'text':
-        return <p style={alignmentStyle}>{displayLabel}</p>;
+        return <p style={alignmentStyle}>{settings.label}</p>;
       case 'button':
         return (
           <div style={{ display: 'flex', justifyContent: element.alignment || 'center', width: '100%' }}>
@@ -491,10 +498,11 @@ const addSubmitButton = () => {
         );
       case 'inputText':
         return (
-          <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
-            <input
+        <div style={wrapperStyle}>
+          {settings?.label && <label>{settings.label}</label>}
+<input
               type="text"
-              placeholder={settings?.placeholder || displayLabel}
+              placeholder={settings?.placeholder || ''}
               required={settings?.required}
               style={{
                 borderRadius: '8px',
@@ -507,10 +515,11 @@ const addSubmitButton = () => {
         );
       case 'email':
         return (
-          <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
+        <div style={wrapperStyle}>
+          {settings?.label && <label>{settings.label}</label>}
             <input
               type="email"
-              placeholder={settings?.placeholder || 'Email Address'}
+              placeholder={settings?.placeholder || ''}
               required={settings?.required}
               style={{
                 borderRadius: '8px',
@@ -535,8 +544,8 @@ const addSubmitButton = () => {
         return <hr style={{ ...alignmentStyle, width: '100%' }} />;
       case 'image':
           return (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-              <label className="custom-file-label">
+            <div style={wrapperStyle}>
+          {settings?.label && <label>{settings.label}</label>}              <label className="custom-file-label">
                 Choose Image
                 <input
                   type="file"
@@ -562,7 +571,8 @@ const addSubmitButton = () => {
           );       
       case 'file':
           return (
-            <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
+          <div style={wrapperStyle}>
+          {settings?.label && <label>{settings.label}</label>}
               <label className="custom-file-label">
                 Upload File
                 <input
@@ -580,8 +590,8 @@ const addSubmitButton = () => {
           console.log('Rendering Table with Data:', tableData);
     
           return (
-            <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-              <div>
+            <div style={wrapperStyle}>
+          {settings?.label && <label>{settings.label}</label>}<div>
                 {/* Styled file input and label */}
                 <div style={{ marginBottom: '10px' }}>
                   <input
@@ -636,8 +646,9 @@ const addSubmitButton = () => {
           );
       case 'dateTime':
       return (
-        <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
-          {settings?.useCurrentDate ? (
+        <div style={wrapperStyle}>
+          {settings?.label && <label>{settings.label}</label>}
+           {settings?.useCurrentDate ? (
 
             <input
               type="text"
@@ -665,8 +676,9 @@ const addSubmitButton = () => {
       );    
       case 'dropdown':
         return (
-          <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-            <select
+          <div style={wrapperStyle}>
+          {settings?.label && <label>{settings.label}</label>}
+          <select
               style={{
                 borderRadius: '8px',
                 padding: '10px',
@@ -685,7 +697,8 @@ const addSubmitButton = () => {
         );    
       case 'boolean':
         return (
-          <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
+        <div style={wrapperStyle}>
+          {settings?.label && <label>{settings.label}</label>}
             <select
               value={settings?.defaultBoolean || 'true'}
               onChange={(e) => updateElementSettings(element.id, { ...settings, defaultBoolean: e.target.value })}
@@ -703,7 +716,8 @@ const addSubmitButton = () => {
         );      
       case 'number':
         return (
-          <div style={{ display: 'flex', justifyContent: settings?.alignment || 'center', width: '100%' }}>
+        <div style={wrapperStyle}>
+          {settings?.label && <label>{settings.label}</label>}
             <input
               type="number"
               min={settings?.min}
@@ -732,8 +746,8 @@ const addSubmitButton = () => {
           }}
         >
           {/* Password Input Field and Show Password Option */}
-          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: settings?.alignment === 'left' ? 'flex-start' : settings?.alignment === 'right' ? 'flex-end' : 'center', width: '100%' }}>
-            <input
+          <div style={wrapperStyle}>
+          {settings?.label && <label>{settings.label}</label>}<input
               type={settings?.showPasswordOption && settings?.showPassword ? 'text' : 'password'}
               placeholder={settings?.placeholder || 'Enter password'}
               required={settings?.required}
@@ -778,7 +792,7 @@ const addSubmitButton = () => {
         return (
           <input
             type={element.type}
-            placeholder={settings?.placeholder || displayLabel}
+            placeholder={settings?.placeholder ||''}
             required={settings?.required}
             style={alignmentStyle}
           />
