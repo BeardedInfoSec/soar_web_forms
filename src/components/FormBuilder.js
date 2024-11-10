@@ -147,53 +147,54 @@ const addSubmitButton = () => {
   ]);
 };
 
-  const generateKey = (type) => {
-    const existingCount = formElements.filter((el) => el.type === type).length + 1;
-    return `${type} ${existingCount}`; // Example: "inputText 1"
-  };
-  
-  const addElement = (type) => {
-    const newKey = generateKey(type);
-    const newElement = {
-        id: Date.now().toString(),
-        type,
-        key: newKey,
-        label: type === 'heading' ? 'Heading' : type,
-        alignment: 'center',
-        settings: {
-            headerLevel: 'h1',
-            placeholder: type === 'email' ? 'Email Address' : type === 'password' ? 'Enter password' : 'Enter text here...',
-            useCurrentDate: false,
-            defaultBoolean: 'true',
-            dropdownOptions: [],
-            min: '',
-            max: '',
-            step: '',
-            defaultValue: '',
-            showPasswordOption: false,
-            passwordLength: '',
-            requireSymbols: false,
-            requireNumbers: false,
-            csvData: []
-        },
-        required: false,
-        textColor: '#ffffff',
-        fontFamily: 'Arial',
-    };
+const generateKey = (type) => {
+  // Replace spaces with underscores and lowercase the type for consistency
+  const formattedType = type.replace(/\s+/g, '_').toLowerCase();
 
-    // Ensure new elements are added before the Submit button and prevent duplicates
-    setFormElements((prev) => {
-        // Check if an element of the same type already exists, if that's not desired
-        if (!prev.some((el) => el.type === type)) {
-            const submitIndex = prev.findIndex((el) => el.id === SUBMIT_BUTTON_ID);
-            const newFormElements = [...prev];
-            newFormElements.splice(submitIndex, 0, newElement); // Insert new element before the submit button
-            return newFormElements;
-        }
-        return prev;
-    });
+  // Count existing elements of this type
+  const existingCount = formElements.filter((el) => el.type === type).length + 1;
+
+  // Return a formatted key such as "heading_1", "email_2"
+  return `${formattedType}_${existingCount}`;
 };
 
+const addElement = (type) => {
+  const newKey = generateKey(type);
+  const newElement = {
+    id: newKey, // Use the generated key as ID
+    type,
+    key: newKey,
+    label: type, // Default label as the type name
+    alignment: 'center',
+    settings: {
+      headerLevel: 'h1',
+      placeholder: type === 'email' ? 'Email Address' : 'Enter text here...',
+      useCurrentDate: false,
+      defaultBoolean: 'true',
+      dropdownOptions: [],
+      min: '',
+      max: '',
+      step: '',
+      defaultValue: '',
+      showPasswordOption: false,
+      passwordLength: '',
+      requireSymbols: false,
+      requireNumbers: false,
+      csvData: [],
+    },
+    required: false,
+    textColor: '#ffffff',
+    fontFamily: 'Arial',
+  };
+
+  // Ensure new elements are added before the Submit button
+  setFormElements((prev) => {
+    const submitIndex = prev.findIndex((el) => el.id === SUBMIT_BUTTON_ID);
+    const newFormElements = [...prev];
+    newFormElements.splice(submitIndex, 0, newElement);
+    return newFormElements;
+  });
+};
 
   const isKeyUnique = (key) => {
     return !formElements.some((el) => el.key === key && el.id !== selectedElement?.id);
