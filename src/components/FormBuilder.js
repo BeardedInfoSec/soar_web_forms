@@ -318,13 +318,14 @@ const addElement = (type) => {
   const handleEditClick = (element) => {
     setSelectedElement(element);
     setDraftSettings({
-        ...element.settings,
-        key: element.key || '',
-        label: element.label,
-        alignment: element.alignment,
-        required: element.required,
-        placeholder: element.settings?.placeholder,
-        csvData: element.settings?.csvData || [], // Ensure csvData is included
+      ...element.settings,
+      key: element.key || '',
+      label: element.label,
+      alignment: element.alignment,
+      required: element.required,
+      requirement: element.settings?.requirement || false, // Add this line
+      placeholder: element.settings?.placeholder,
+      csvData: element.settings?.csvData || [],
     });
 };
 
@@ -356,37 +357,26 @@ const addElement = (type) => {
 };
 
 
-  const cancelChanges = () => {
-    setSelectedElement(null);
-    setDraftSettings(null);
-  };
-
   const updateElementSettings = (id, newSettings) => {
-    console.log('Updating element settings for ID:', id);
-    console.log('New settings before merge:', newSettings);
-
     setFormElements((prev) =>
-        prev.map((el) =>
-            el.id === id.toString()
-                ? {
-                    ...el,
-                    ...newSettings,
-                    settings: {
-                        ...el.settings,
-                        ...newSettings,
-                        csvData: newSettings.csvData !== undefined
-                            ? newSettings.csvData
-                            : el.settings.csvData, // Preserve existing csvData if not overwritten
-                    },
-                }
-                : el
-        )
+      prev.map((el) =>
+        el.id === id.toString()
+          ? {
+              ...el,
+              ...newSettings,
+              settings: {
+                ...el.settings,
+                ...newSettings,
+                requirement: newSettings.requirement !== undefined
+                  ? newSettings.requirement
+                  : el.settings.requirement, // Preserve existing requirement if not changed
+              },
+            }
+          : el
+      )
     );
-
-    console.log('Updated form elements:', formElements);
-};
-
-  
+  };
+    
   const handleDragStart = ({ active }) => {
     setDraggingElement(active.id);
   };
@@ -1000,8 +990,25 @@ const addElement = (type) => {
           }}
         />
       </label>
+    )}    {selectedElement.type !== 'divider' && (
+      <>
+        {['inputText', 'email', 'dateTime', 'dropdown', 'boolean', 'number', 'file'].includes(selectedElement.type) && (
+          <div className="checkbox-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <label>Required</label>
+            <input
+              type="checkbox"
+              checked={draftSettings?.required || false}
+              onChange={(e) => {
+                setDraftSettings((prev) => ({ ...prev, required: e.target.checked }));
+                updateElementSettings(selectedElement.id, { ...draftSettings, required: e.target.checked });
+              }}
+              style={{ marginLeft: '10px' }}
+            />
+          </div>
+        )}
+      </>
     )}
-
+    
     <button
       onClick={() => {
         if (window.confirm('Are you sure you want to delete this element?')) {
