@@ -456,8 +456,6 @@ const addElement = (type) => {
       textAlign: settings?.alignment || 'center',
     };
   
-    // Use the element key as the default label if the label isn't set
-    // const displayLabel = settings?.label || element.key || element.label;
     const wrapperStyle = {
       display: 'flex',
       flexDirection: 'column',
@@ -465,6 +463,10 @@ const addElement = (type) => {
       width: '100%',
       marginBottom: '10px',
     };
+
+    const renderLabel = (label) => (
+      label && <label style={{ marginBottom: '5px', fontWeight: 'bold' }}>{label}</label>
+    );
 
     switch (element.type) {
       case 'heading': {
@@ -500,8 +502,8 @@ const addElement = (type) => {
       case 'inputText':
         return (
         <div style={wrapperStyle}>
-          {settings?.label && <label>{settings.label}</label>}
-<input
+          {renderLabel(settings?.label || element.label)}
+            <input
               type="text"
               placeholder={settings?.placeholder || ''}
               required={settings?.required}
@@ -517,7 +519,7 @@ const addElement = (type) => {
       case 'email':
         return (
         <div style={wrapperStyle}>
-          {settings?.label && <label>{settings.label}</label>}
+          {renderLabel(settings?.label || element.label)}
             <input
               type="email"
               placeholder={settings?.placeholder || ''}
@@ -544,9 +546,10 @@ const addElement = (type) => {
       case 'divider':
         return <hr style={{ ...alignmentStyle, width: '100%' }} />;
       case 'image':
-          return (
-            <div style={wrapperStyle}>
-          {settings?.label && <label>{settings.label}</label>}              <label className="custom-file-label">
+        return (
+          <div style={wrapperStyle}>
+          {renderLabel(settings?.label || element.label)}
+              <label className="custom-file-label">
                 Choose Image
                 <input
                   type="file"
@@ -573,7 +576,7 @@ const addElement = (type) => {
       case 'file':
           return (
           <div style={wrapperStyle}>
-          {settings?.label && <label>{settings.label}</label>}
+          {renderLabel(settings?.label || element.label)}
               <label className="custom-file-label">
                 Upload File
                 <input
@@ -587,12 +590,13 @@ const addElement = (type) => {
             </div>
           );
       case 'table':
-          const tableData = element.settings?.csvData || [];
-          console.log('Rendering Table with Data:', tableData);
-    
-          return (
-            <div style={wrapperStyle}>
-          {settings?.label && <label>{settings.label}</label>}<div>
+        const tableData = element.settings?.csvData || [];
+        console.log('Rendering Table with Data:', tableData);
+  
+        return (
+          <div style={wrapperStyle}>
+          {renderLabel(settings?.label || element.label)}
+          <div>
                 {/* Styled file input and label */}
                 <div style={{ marginBottom: '10px' }}>
                   <input
@@ -646,39 +650,38 @@ const addElement = (type) => {
             </div>
           );
       case 'dateTime':
-      return (
-        <div style={wrapperStyle}>
-          {settings?.label && <label>{settings.label}</label>}
-           {settings?.useCurrentDate ? (
-
-            <input
-              type="text"
-              value={new Date().toLocaleDateString('en-US')}
-              readOnly
-              style={{
-                borderRadius: '8px',
-                padding: '10px',
-                border: '1px solid #ced4da',
-                textAlign: 'center'
-              }}
-            />
-          ) : (
-            <input
-              type="date"
-              style={{
-                borderRadius: '8px',
-                padding: '10px',
-                border: '1px solid #ced4da',
-                textAlign: 'center'
-              }}
-            />
-          )}
-        </div>
-      );    
+        return (
+          <div style={wrapperStyle}>
+            {renderLabel(settings?.label || element.label)}
+            {settings?.useCurrentDate ? (
+              <input
+                type="text"
+                value={new Date().toLocaleDateString('en-US')}
+                readOnly
+                style={{
+                  borderRadius: '8px',
+                  padding: '10px',
+                  border: '1px solid #ced4da',
+                  textAlign: 'center'
+                }}
+              />
+            ) : (
+              <input
+                type="date"
+                style={{
+                  borderRadius: '8px',
+                  padding: '10px',
+                  border: '1px solid #ced4da',
+                  textAlign: 'center'
+                }}
+              />
+            )}
+          </div>
+        );    
       case 'dropdown':
         return (
           <div style={wrapperStyle}>
-          {settings?.label && <label>{settings.label}</label>}
+          {renderLabel(settings?.label || element.label)}
           <select
               style={{
                 borderRadius: '8px',
@@ -699,7 +702,7 @@ const addElement = (type) => {
       case 'boolean':
         return (
         <div style={wrapperStyle}>
-          {settings?.label && <label>{settings.label}</label>}
+          {renderLabel(settings?.label || element.label)}
             <select
               value={settings?.defaultBoolean || 'true'}
               onChange={(e) => updateElementSettings(element.id, { ...settings, defaultBoolean: e.target.value })}
@@ -718,7 +721,7 @@ const addElement = (type) => {
       case 'number':
         return (
         <div style={wrapperStyle}>
-          {settings?.label && <label>{settings.label}</label>}
+          {renderLabel(settings?.label || element.label)}
             <input
               type="number"
               min={settings?.min}
@@ -746,9 +749,9 @@ const addElement = (type) => {
             justifyContent: 'center',
           }}
         >
-          {/* Password Input Field and Show Password Option */}
           <div style={wrapperStyle}>
-          {settings?.label && <label>{settings.label}</label>}<input
+          {renderLabel(settings?.label || element.label)}
+          <input
               type={settings?.showPasswordOption && settings?.showPassword ? 'text' : 'password'}
               placeholder={settings?.placeholder || 'Enter password'}
               required={settings?.required}
@@ -759,9 +762,9 @@ const addElement = (type) => {
               style={{
                 borderRadius: '8px',
                 padding: '10px',
-                width: '300px', // Adjust the width as needed
+                width: '300px',
                 border: settings?.isValid === false ? '2px solid #ff0000' : '1px solid #ced4da',
-                textAlign: 'left', // Ensures the placeholder text stays aligned left
+                textAlign: 'left',
                 marginRight: '10px',
               }}
             />
@@ -777,13 +780,11 @@ const addElement = (type) => {
               </label>
             )}
           </div>
-          {/* Password Requirements */}
           <div style={{ marginTop: '10px', textAlign: settings?.alignment || 'center', width: '100%', display: 'flex', flexDirection: 'column', alignItems: settings?.alignment === 'left' ? 'flex-start' : settings?.alignment === 'right' ? 'flex-end' : 'center' }}>
             {settings?.passwordLength && <p style={{ marginBottom: '5px' }}>Requires Minimum Length: {settings.passwordLength}</p>}
             {settings?.requireSymbols && <p style={{ marginBottom: '5px' }}>Requires Symbols: Yes</p>}
             {settings?.requireNumbers && <p>Requires Numbers: Yes</p>}
           </div>
-          {/* Validation Error */}
           {!settings?.isValid && settings?.isValid !== undefined && (
             <span style={{ color: '#ff0000', fontSize: '0.8em', marginTop: '5px' }}>Password does not meet requirements</span>
           )}
@@ -800,7 +801,7 @@ const addElement = (type) => {
         );
     }
   };
-  
+
   const areRequiredFieldsFilled = () => {
     return formElements.every((el) => {
       if (el.required) {
@@ -917,310 +918,111 @@ const addElement = (type) => {
       </div>
 
       {selectedElement && (
-        <div className="element-editor">
-          <h3>Edit Element</h3>
-          
-          <label>
-          Key:
-          <input
-            type="text"
-            value={draftSettings?.key || ''}
-            onChange={(e) =>
-              setDraftSettings((prev) => ({ ...prev, key: e.target.value }))
-            }
-           />
-          </label>
-          <label>
-            Label:
-            <input
-              type="text"
-              value={draftSettings?.label || ''}
-              onChange={(e) =>
-                setDraftSettings((prev) => ({ ...prev, label: e.target.value }))
-              }
-            />
-          </label>
-          {selectedElement.type === 'heading' && (
-            <label>
-              Header Level:
-              <select
-                value={draftSettings?.headerLevel || 'h1'}
-                onChange={(e) =>
-                  setDraftSettings((prev) => ({
-                    ...prev,
-                    headerLevel: e.target.value,
-                  }))
-                }
-              >
-                <option value="h1">H1</option>
-                <option value="h2">H2</option>
-                <option value="h3">H3</option>
-                <option value="h4">H4</option>
-                <option value="h5">H5</option>
-                <option value="h6">H6</option>
-              </select>
-            </label>
-          )}
-          <label>
-            Alignment:
-            <select
-              value={draftSettings?.alignment || 'center'}
-              onChange={(e) =>
-                setDraftSettings((prev) => ({ ...prev, alignment: e.target.value }))
-              }
-            >
-              <option value="left">Left</option>
-              <option value="center">Center</option>
-              <option value="right">Right</option>
-            </select>
-          </label>
-          {(selectedElement.type === 'inputText' || selectedElement.type === 'email') && (
-            <label>
-              Placeholder Text:
-              <input
-                type="text"
-                value={draftSettings?.placeholder || ''}
-                onChange={(e) =>
-                  setDraftSettings((prev) => ({ ...prev, placeholder: e.target.value }))
-                }
-              />
-            </label>
-          )}
-          {selectedElement.type === 'dateTime' && (
-            <label>
-              Use Current Date:
-              <input
-                type="checkbox"
-                checked={draftSettings?.useCurrentDate || false}
-                onChange={(e) =>
-                  setDraftSettings((prev) => ({ ...prev, useCurrentDate: e.target.checked }))
-                }
-              />
-            </label>
-          )}
-          {selectedElement.type === 'dropdown' && (
-          <>
-            <label>Dropdown Options:</label>
-            {draftSettings?.dropdownOptions?.map((option, idx) => (
-              <div key={idx} style={{ display: 'flex', alignItems: 'center' }}>
-                <input
-                  type="text"
-                  value={option}
-                  onChange={(e) =>
-                    setDraftSettings((prev) => {
-                      const updatedOptions = [...prev.dropdownOptions];
-                      updatedOptions[idx] = e.target.value;
-                      return { ...prev, dropdownOptions: updatedOptions };
-                    })
-                  }
-                />
-                <button
-                  onClick={() =>
-                    setDraftSettings((prev) => ({
-                      ...prev,
-                      dropdownOptions: prev.dropdownOptions.filter((_, i) => i !== idx),
-                    }))
-                  }
-                  style={{
-                    marginLeft: '10px',
-                    padding: '5px 10px',
-                    color: 'white',
-                    backgroundColor: 'red',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                  }}
-                >
-                 X
-                </button>
-              </div>
-            ))}
-<button
-  onClick={() =>
-    setDraftSettings((prev) => ({
-      ...prev,
-      dropdownOptions: [...(prev.dropdownOptions || []), ''],
-    }))
-  }
-  className="add-option-button"
->
-  +
-</button>
+  <div className="element-editor">
+    <h3>Edit Element</h3>
 
-          </>
-        )}
+    <label>
+      Key:
+      <input
+        type="text"
+        value={draftSettings?.key || ''}
+        onChange={(e) => {
+          const updatedKey = e.target.value;
+          setDraftSettings((prev) => ({ ...prev, key: updatedKey }));
+          updateElementSettings(selectedElement.id, { ...draftSettings, key: updatedKey });
+        }}
+      />
+    </label>
 
-          {selectedElement.type === 'boolean' && (
-            <label>
-              Default Boolean Value:
-              <select
-                value={draftSettings?.defaultBoolean || 'true'}
-                onChange={(e) =>
-                  setDraftSettings((prev) => ({ ...prev, defaultBoolean: e.target.value }))
-                }
-              >
-                <option value="true">True</option>
-                <option value="false">False</option>
-              </select>
-            </label>
-          )}
-          {selectedElement.type === 'number' && (
-            <>
-              <label>
-                Minimum Value:
-                <input
-                  type="number"
-                  value={draftSettings?.min || ''}
-                  onChange={(e) =>
-                    setDraftSettings((prev) => ({ ...prev, min: e.target.value }))
-                  }
-                />
-              </label>
-              <label>
-                Maximum Value:
-                <input
-                  type="number"
-                  value={draftSettings?.max || ''}
-                  onChange={(e) =>
-                    setDraftSettings((prev) => ({ ...prev, max: e.target.value }))
-                  }
-                />
-              </label>
-              <label>
-                Step Value:
-                <input
-                  type="number"
-                  value={draftSettings?.step || ''}
-                  onChange={(e) =>
-                    setDraftSettings((prev) => ({ ...prev, step: e.target.value }))
-                  }
-                />
-              </label>
-              <label>
-                Default Value:
-                <input
-                  type="number"
-                  value={draftSettings?.defaultValue || ''}
-                  onChange={(e) =>
-                    setDraftSettings((prev) => ({ ...prev, defaultValue: e.target.value }))
-                  }
-                />
-              </label>
-            </>
-          )}
-          {selectedElement.type === 'password' && (
-            <>
-              <label>
-                Show Password Option:
-                <input
-                  type="checkbox"
-                  checked={draftSettings?.showPasswordOption || false}
-                  onChange={(e) =>
-                    setDraftSettings((prev) => ({
-                      ...prev,
-                      showPasswordOption: e.target.checked,
-                    }))
-                  }
-                />
-              </label>
-              <label>
-                Minimum Password Length:
-                <input
-                  type="number"
-                  value={draftSettings?.passwordLength || ''}
-                  onChange={(e) =>
-                    setDraftSettings((prev) => ({
-                      ...prev,
-                      passwordLength: e.target.value,
-                    }))
-                  }
-                />
-              </label>
-              <label>
-                Requires Symbols:
-                <input
-                  type="checkbox"
-                  checked={draftSettings?.requireSymbols || false}
-                  onChange={(e) =>
-                    setDraftSettings((prev) => ({
-                      ...prev,
-                      requireSymbols: e.target.checked,
-                    }))
-                  }
-                />
-              </label>
-              <label>
-                Requires Numbers:
-                <input
-                  type="checkbox"
-                  checked={draftSettings?.requireNumbers || false}
-                  onChange={(e) =>
-                    setDraftSettings((prev) => ({
-                      ...prev,
-                      requireNumbers: e.target.checked,
-                    }))
-                  }
-                />
-              </label>
-            </>
-          )}
-          <button
-            onClick={applyDraftChanges}
-            className="save-changes custom-button"
-            style={{
-              backgroundColor: '#4285f4',
-              color: 'white',
-              border: 'none',
-              padding: '10px 20px',
-              textAlign: 'center',
-              fontSize: '16px',
-              cursor: 'pointer',
-              margin: '5px',
-              borderRadius: '6px'
-            }}
-            disabled={!areRequiredFieldsFilled()}
-          >
-            Save Changes
-          </button>
-          <button
-            onClick={cancelChanges}
-            className="cancel-button custom-button"
-            style={{
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              padding: '10px 20px',
-              textAlign: 'center',
-              fontSize: '16px',
-              cursor: 'pointer',
-              margin: '5px',
-              borderRadius: '6px'
-            }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => {
-              if (window.confirm('Are you sure you want to delete this element?')) {
-                removeElement(selectedElement.id);
-              }
-            }}
-            className="delete-element custom-button"
-            style={{
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              padding: '10px 20px',
-              textAlign: 'center',
-              fontSize: '16px',
-              cursor: 'pointer',
-              margin: '5px',
-              borderRadius: '6px'
-            }}
-          >
-            Delete Element
-          </button>         
-        </div>
-      )}
+    <label>
+      Label:
+      <input
+        type="text"
+        value={draftSettings?.label || ''}
+        onChange={(e) => {
+          const updatedLabel = e.target.value;
+          setDraftSettings((prev) => ({ ...prev, label: updatedLabel }));
+          updateElementSettings(selectedElement.id, { ...draftSettings, label: updatedLabel });
+        }}
+      />
+    </label>
+
+    {selectedElement.type === 'heading' && (
+      <label>
+        Header Level:
+        <select
+          value={draftSettings?.headerLevel || 'h1'}
+          onChange={(e) => {
+            const updatedHeaderLevel = e.target.value;
+            setDraftSettings((prev) => ({ ...prev, headerLevel: updatedHeaderLevel }));
+            updateElementSettings(selectedElement.id, { ...draftSettings, headerLevel: updatedHeaderLevel });
+          }}
+        >
+          <option value="h1">H1</option>
+          <option value="h2">H2</option>
+          <option value="h3">H3</option>
+          <option value="h4">H4</option>
+          <option value="h5">H5</option>
+          <option value="h6">H6</option>
+        </select>
+      </label>
+    )}
+
+    <label>
+      Alignment:
+      <select
+        value={draftSettings?.alignment || 'center'}
+        onChange={(e) => {
+          const updatedAlignment = e.target.value;
+          setDraftSettings((prev) => ({ ...prev, alignment: updatedAlignment }));
+          updateElementSettings(selectedElement.id, { ...draftSettings, alignment: updatedAlignment });
+        }}
+      >
+        <option value="left">Left</option>
+        <option value="center">Center</option>
+        <option value="right">Right</option>
+      </select>
+    </label>
+
+    {(selectedElement.type === 'inputText' || selectedElement.type === 'email') && (
+      <label>
+        Placeholder Text:
+        <input
+          type="text"
+          value={draftSettings?.placeholder || ''}
+          onChange={(e) => {
+            const updatedPlaceholder = e.target.value;
+            setDraftSettings((prev) => ({ ...prev, placeholder: updatedPlaceholder }));
+            updateElementSettings(selectedElement.id, { ...draftSettings, placeholder: updatedPlaceholder });
+          }}
+        />
+      </label>
+    )}
+
+    <button
+      onClick={() => {
+        if (window.confirm('Are you sure you want to delete this element?')) {
+          removeElement(selectedElement.id);
+        }
+      }}
+      className="delete-element custom-button"
+      style={{
+        backgroundColor: '#dc3545',
+        color: 'white',
+        border: 'none',
+        padding: '10px 20px',
+        textAlign: 'center',
+        fontSize: '16px',
+        cursor: 'pointer',
+        margin: '5px',
+        borderRadius: '6px',
+      }}
+    >
+      Delete Element
+    </button>
+  </div>
+)}
+
     </div>
   );
 };
