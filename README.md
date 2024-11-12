@@ -23,21 +23,15 @@ cd soar_web_forms
 npm install
 ```
 
-### 3. Configure Server Ports
+### 3. Configure Client Port
 
-Set the Node.js server to use port **3000** by including the following in your `.env` or `package.json`:
-
-```json
-"scripts": {
-  "start": "PORT=3000 node server.js"
-}
-```
-
-Or directly set the environment variable:
+Set the client (React app) to use port **3000** by including the following in your `.env` or by directly setting it with the command:
 
 ```bash
-export PORT=3000
+set PORT=3000 & npm start
 ```
+
+This will start the React application on port 3000, while the server (`server.js`) remains on port 5000.
 
 ### 4. Run `server.js` and `proxy.js`
 
@@ -133,7 +127,7 @@ INSERT INTO users (name, label) VALUES
 Once the setup is complete, start the application:
 
 ```bash
-npm start
+set PORT=3000 & npm start
 ```
 
 Visit `http://localhost:3000` in your browser to access the application.
