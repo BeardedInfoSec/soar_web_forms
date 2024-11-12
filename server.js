@@ -162,19 +162,41 @@ app.get('/protected', authenticate, (req, res) => {
 
 // Save Form Endpoint
 app.post('/save_form', async (req, res) => {
-  const { name, label, tags, elements, xmlData } = req.body;
+  const { name, label, tags, elements, xmlData, overwrite } = req.body; // Adding 'overwrite' flag
 
   if (!name || !label || !elements || !xmlData) {
     return res.status(400).json({ message: 'Name, label, elements, and xmlData are required' });
   }
 
   try {
-    const query = `
+    // Check if a form with the same name already exists
+    const checkQuery = 'SELECT * FROM forms WHERE name = $1';
+    const checkResult = await pool.query(checkQuery, [name]);
+
+    if (checkResult.rows.length > 0) {
+      if (overwrite) {
+        // If overwrite is true, update the existing form
+        const updateQuery = `
+          UPDATE forms
+          SET label = $2, tags = $3, elements = $4, xml_data = $5, updated_at = CURRENT_TIMESTAMP
+          WHERE name = $1
+          RETURNING *;
+        `;
+        const result = await pool.query(updateQuery, [name, label, tags, JSON.stringify(elements), xmlData]);
+        return res.status(200).json({ message: 'Form updated successfully', form: result.rows[0] });
+      } else {
+        // If overwrite is false, return a conflict status
+        return res.status(409).json({ message: 'A form with this name already exists. Set overwrite to true to update it.' });
+      }
+    }
+
+    // If no form with the same name exists, proceed with saving the form
+    const insertQuery = `
       INSERT INTO forms (name, label, tags, elements, xml_data, created_at, updated_at)
       VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
       RETURNING *;
     `;
-    const result = await pool.query(query, [name, label, tags, JSON.stringify(elements), xmlData]);
+    const result = await pool.query(insertQuery, [name, label, tags, JSON.stringify(elements), xmlData]);
 
     res.status(201).json({ message: 'Form saved successfully', form: result.rows[0] });
   } catch (err) {
@@ -182,6 +204,7 @@ app.post('/save_form', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 // Get Forms Endpoint
 app.get('/forms', async (req, res) => {

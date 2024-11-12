@@ -3,6 +3,7 @@ import { DndContext, DragOverlay, closestCenter } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, rectSortingStrategy } from '@dnd-kit/sortable';
 import Papa from 'papaparse';
 import './FormBuilder.css';
+import Button from '@splunk/react-ui/Button';
 
 const ELEMENT_TYPES = [
   { id: 'heading', label: 'Heading' },
@@ -60,7 +61,6 @@ useEffect(() => {
   loadSavedForms();
 }, []);
 
-
 const loadSavedForms = async () => {
   try {
     const response = await fetch('http://localhost:5000/forms');
@@ -78,7 +78,6 @@ const loadSavedForms = async () => {
   }
 };
 
-
 const loadForm = async () => {
   if (!selectedForm) {
     alert('Please select a form to load.');
@@ -86,7 +85,6 @@ const loadForm = async () => {
   }
 
   try {
-    // Use the endpoint that searches by form name
     const response = await fetch(`http://localhost:5000/forms/${encodeURIComponent(selectedForm)}`);
     if (!response.ok) {
       throw new Error(`Failed to load form: ${response.status}`);
@@ -115,6 +113,7 @@ const loadForm = async () => {
           headerLevel: el.querySelector('headerLevel')?.textContent || 'h1',
           placeholder: el.querySelector('placeholder')?.textContent || '',
           dropdownOptions: options,
+          label: el.querySelector('label')?.textContent || '' // Set label directly in settings
         }
       };
     }).filter(el => el.type !== 'button'); // Exclude submit button
@@ -130,7 +129,6 @@ const loadForm = async () => {
     alert('Failed to load form data.');
   }
 };
-
 
 const addSubmitButton = () => {
   setFormElements(prev => [
@@ -148,51 +146,48 @@ const addSubmitButton = () => {
 };
 
 const generateKey = (type) => {
-  // Replace spaces with underscores and lowercase the type for consistency
-  const formattedType = type.replace(/\s+/g, '_').toLowerCase();
-
-  // Count existing elements of this type
-  const existingCount = formElements.filter((el) => el.type === type).length + 1;
-
-  // Return a formatted key such as "heading_1", "email_2"
-  return `${formattedType}_${existingCount}`;
+  // Count how many elements of this type already exist in formElements
+  const existingCount = formElements.filter((el) => el.type === type).length;
+  return `${type}${existingCount + 1}`; // e.g., "inputText1", "inputText2"
 };
 
 const addElement = (type) => {
   const newKey = generateKey(type);
+  const defaultLabel = `${type.charAt(0).toUpperCase() + type.slice(1)}`; // Generate a default label based on the type
+
   const newElement = {
-    id: newKey, // Use the generated key as ID
-    type,
-    key: newKey,
-    label: type, // Default label as the type name
-    alignment: 'center',
-    settings: {
-      headerLevel: 'h1',
-      placeholder: type === 'email' ? 'Email Address' : 'Enter text here...',
-      useCurrentDate: false,
-      defaultBoolean: 'true',
-      dropdownOptions: [],
-      min: '',
-      max: '',
-      step: '',
-      defaultValue: '',
-      showPasswordOption: false,
-      passwordLength: '',
-      requireSymbols: false,
-      requireNumbers: false,
-      csvData: [],
-    },
-    required: false,
-    textColor: '#ffffff',
-    fontFamily: 'Arial',
+      id: Date.now().toString(),
+      type,
+      key: newKey,
+      label: defaultLabel,
+      alignment: 'center',
+      settings: {
+          label: defaultLabel, // Set the label directly in settings
+          headerLevel: 'h1',
+          placeholder: type === 'email' ? 'Email Address' : type === 'password' ? 'Enter password' : 'Enter text here...',
+          useCurrentDate: false,
+          defaultBoolean: 'true',
+          dropdownOptions: [],
+          min: '',
+          max: '',
+          step: '',
+          defaultValue: '',
+          showPasswordOption: false,
+          passwordLength: '',
+          requireSymbols: false,
+          requireNumbers: false,
+          csvData: []
+      },
+      required: false,
+      textColor: '#ffffff',
+      fontFamily: 'Arial',
   };
 
-  // Ensure new elements are added before the Submit button
   setFormElements((prev) => {
-    const submitIndex = prev.findIndex((el) => el.id === SUBMIT_BUTTON_ID);
-    const newFormElements = [...prev];
-    newFormElements.splice(submitIndex, 0, newElement);
-    return newFormElements;
+      const submitIndex = prev.findIndex((el) => el.id === SUBMIT_BUTTON_ID);
+      const newFormElements = [...prev];
+      newFormElements.splice(submitIndex, 0, newElement);
+      return newFormElements;
   });
 };
 
@@ -238,32 +233,41 @@ const addElement = (type) => {
       return;
     }
   
+    // Define formData object excluding xmlData initially
     const formData = {
       name: formName,
       label: formLabel,
       tags: formTags ? formTags.split(',').map(tag => tag.trim()) : [],
-      elements: formElements, // Includes the populated csvData
+      elements: formElements,
     };
   
-    // Convert form data to XML
+    // Convert formData to XML format and store it in xmlData
     const convertToXML = (obj) => {
       let xml = '';
       for (let key in obj) {
         if (Array.isArray(obj[key])) {
-          xml += `<${key}>`;
-          obj[key].forEach((element) => {
-            if (Array.isArray(element)) {
-              // Handle CSV data as rows and cells
-              xml += '<row>';
-              element.forEach((cell) => {
-                xml += `<cell>${cell}</cell>`;
-              });
-              xml += '</row>';
-            } else {
-              xml += `<element>${convertToXML(element)}</element>`;
-            }
-          });
-          xml += `</${key}>`;
+          if (key === 'dropdownOptions') {
+            // Special handling for dropdown options
+            xml += `<${key}>`;
+            obj[key].forEach((option) => {
+              xml += `<option>${option}</option>`;
+            });
+            xml += `</${key}>`;
+          } else {
+            xml += `<${key}>`;
+            obj[key].forEach((element) => {
+              if (Array.isArray(element)) {
+                xml += '<row>';
+                element.forEach((cell) => {
+                  xml += `<cell>${cell}</cell>`;
+                });
+                xml += '</row>';
+              } else {
+                xml += `<element>${convertToXML(element)}</element>`;
+              }
+            });
+            xml += `</${key}>`;
+          }
         } else if (typeof obj[key] === 'object') {
           xml += `<${key}>${convertToXML(obj[key])}</${key}>`;
         } else {
@@ -272,9 +276,10 @@ const addElement = (type) => {
       }
       return xml;
     };
-  
-    const xmlData = `<form>${convertToXML(formData)}</form>`;
-  
+    
+    // Now generate xmlData from formData and add it to the formData object
+    formData.xmlData = `<form>${convertToXML(formData)}</form>`;
+    
     // Send form data to backend
     try {
       const response = await fetch('http://localhost:5000/save_form', {
@@ -283,29 +288,39 @@ const addElement = (type) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: formName,
-          label: formLabel,
-          tags: formTags ? formTags.split(',').map(tag => tag.trim()) : [],
-          elements: formElements,
-          xmlData: xmlData, // Include XML data in the request
+          ...formData, // Spread formData to include all fields, including xmlData
+          overwrite: false, // Default overwrite to false
         }),
       });
   
-      if (!response.ok) {
-        throw new Error(`Failed to save form: ${response.status} ${response.statusText}`);
+      if (response.status === 409) {
+        // Prompt the user to confirm overwrite
+        if (window.confirm('A form with this name already exists. Do you want to overwrite it?')) {
+          formData.overwrite = true;
+          const overwriteResponse = await fetch('http://localhost:5000/save_form', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData),
+          });
+  
+          if (!overwriteResponse.ok) throw new Error('Failed to overwrite form');
+          alert(`Form "${formName}" overwritten successfully!`);
+        } else {
+          alert('Save cancelled.');
+        }
+      } else if (!response.ok) {
+        throw new Error('Failed to save form');
+      } else {
+        alert(`Form "${formName}" saved successfully!`);
       }
-  
-      alert(`Form "${formName}" saved successfully!`);
-      localStorage.setItem(formName, xmlData); // Optional: save XML to local storage
-  
-      // Refresh saved forms after saving
-      loadSavedForms();
-  
     } catch (error) {
       console.error('Error:', error);
       alert(`Error saving form: ${error.message}`);
     }
   };
+  
   
   const removeElement = (id) => {
     if (id === SUBMIT_BUTTON_ID) return; // Prevent deletion of the Submit button
@@ -318,18 +333,16 @@ const addElement = (type) => {
   const handleEditClick = (element) => {
     setSelectedElement(element);
     setDraftSettings({
-      ...element.settings,
-      key: element.key || '',
-      label: element.label,
-      alignment: element.alignment,
-      required: element.required,
-      requirement: element.settings?.requirement || false, // Add this line
-      placeholder: element.settings?.placeholder,
-      csvData: element.settings?.csvData || [],
+        ...element.settings,
+        key: element.key || '',
+        label: element.label,
+        alignment: element.alignment,
+        required: element.required,
+        placeholder: element.settings?.placeholder,
+        csvData: element.settings?.csvData || [], // Ensure csvData is included
     });
 };
-
-  
+ 
   const applyDraftChanges = () => {
     if (selectedElement && draftSettings) {
         console.log('Applying draft changes:', { selectedElement, draftSettings });
@@ -356,27 +369,36 @@ const addElement = (type) => {
     }
 };
 
+  const cancelChanges = () => {
+    setSelectedElement(null);
+    setDraftSettings(null);
+  };
 
   const updateElementSettings = (id, newSettings) => {
+    console.log('Updating element settings for ID:', id);
+    console.log('New settings before merge:', newSettings);
+
     setFormElements((prev) =>
-      prev.map((el) =>
-        el.id === id.toString()
-          ? {
-              ...el,
-              ...newSettings,
-              settings: {
-                ...el.settings,
-                ...newSettings,
-                requirement: newSettings.requirement !== undefined
-                  ? newSettings.requirement
-                  : el.settings.requirement, // Preserve existing requirement if not changed
-              },
-            }
-          : el
-      )
+        prev.map((el) =>
+            el.id === id.toString()
+                ? {
+                    ...el,
+                    ...newSettings,
+                    settings: {
+                        ...el.settings,
+                        ...newSettings,
+                        csvData: newSettings.csvData !== undefined
+                            ? newSettings.csvData
+                            : el.settings.csvData, // Preserve existing csvData if not overwritten
+                    },
+                }
+                : el
+        )
     );
-  };
-    
+
+    console.log('Updated form elements:', formElements);
+};
+
   const handleDragStart = ({ active }) => {
     setDraggingElement(active.id);
   };
@@ -421,9 +443,10 @@ const addElement = (type) => {
   
   const handleResetForm = () => {
     if (window.confirm('Are you sure you want to reset the form?')) {
-      setFormElements([]);
-      setFormName('');
-      setFormLabel('');
+      setFormElements([]);   // Clear form elements
+      setFormName('');       // Clear Form Name
+      setFormLabel('');      // Clear Label
+      setSelectedElement(null); // Close the form editor by deselecting the element
     }
   };
   
@@ -449,6 +472,8 @@ const addElement = (type) => {
       textAlign: settings?.alignment || 'center',
     };
   
+    // Use the element key as the default label if the label isn't set
+    // const displayLabel = settings?.label || element.key || element.label;
     const wrapperStyle = {
       display: 'flex',
       flexDirection: 'column',
@@ -456,10 +481,6 @@ const addElement = (type) => {
       width: '100%',
       marginBottom: '10px',
     };
-
-    const renderLabel = (label) => (
-      label && <label style={{ marginBottom: '5px', fontWeight: 'bold' }}>{label}</label>
-    );
 
     switch (element.type) {
       case 'heading': {
@@ -477,7 +498,7 @@ const addElement = (type) => {
             </HeaderTag>
           </div>
         );
-      }      
+      }    
       case 'text':
         return <p style={alignmentStyle}>{settings.label}</p>;
       case 'button':
@@ -492,27 +513,39 @@ const addElement = (type) => {
             </button>
           </div>
         );
-      case 'inputText':
-        return (
-        <div style={wrapperStyle}>
-          {renderLabel(settings?.label || element.label)}
-            <input
-              type="text"
-              placeholder={settings?.placeholder || ''}
-              required={settings?.required}
-              style={{
-                borderRadius: '8px',
-                padding: '10px',
-                border: '1px solid #ced4da',
-                textAlign: 'center',
-              }}
-            />
-          </div>
-        );
+        case 'inputText':
+          return (
+            <div style={wrapperStyle}>
+              {/* Display the label if it exists */}
+              {settings?.label && <label>{settings.label}</label>}
+              <input
+                type="text"
+                placeholder={settings?.placeholder || ''}
+                required={settings?.required}
+                value={settings?.value || ''} // Bind value to state
+                onChange={(e) => {
+                  setFormElements((prevElements) =>
+                    prevElements.map((el) =>
+                      el.id === element.id
+                        ? { ...el, settings: { ...el.settings, value: e.target.value } }
+                        : el
+                    )
+                  );
+                }}
+                style={{
+                  borderRadius: '8px',
+                  padding: '10px',
+                  border: '1px solid #ced4da',
+                  textAlign: 'center',
+                }}
+              />
+            </div>
+          );
+        
       case 'email':
         return (
         <div style={wrapperStyle}>
-          {renderLabel(settings?.label || element.label)}
+          {settings?.label && <label>{settings.label}</label>}
             <input
               type="email"
               placeholder={settings?.placeholder || ''}
@@ -539,10 +572,9 @@ const addElement = (type) => {
       case 'divider':
         return <hr style={{ ...alignmentStyle, width: '100%' }} />;
       case 'image':
-        return (
-          <div style={wrapperStyle}>
-          {renderLabel(settings?.label || element.label)}
-              <label className="custom-file-label">
+          return (
+            <div style={wrapperStyle}>
+          {settings?.label && <label>{settings.label}</label>}              <label className="custom-file-label">
                 Choose Image
                 <input
                   type="file"
@@ -569,7 +601,7 @@ const addElement = (type) => {
       case 'file':
           return (
           <div style={wrapperStyle}>
-          {renderLabel(settings?.label || element.label)}
+          {settings?.label && <label>{settings.label}</label>}
               <label className="custom-file-label">
                 Upload File
                 <input
@@ -583,13 +615,12 @@ const addElement = (type) => {
             </div>
           );
       case 'table':
-        const tableData = element.settings?.csvData || [];
-        console.log('Rendering Table with Data:', tableData);
-  
-        return (
-          <div style={wrapperStyle}>
-          {renderLabel(settings?.label || element.label)}
-          <div>
+          const tableData = element.settings?.csvData || [];
+          console.log('Rendering Table with Data:', tableData);
+    
+          return (
+            <div style={wrapperStyle}>
+          {settings?.label && <label>{settings.label}</label>}<div>
                 {/* Styled file input and label */}
                 <div style={{ marginBottom: '10px' }}>
                   <input
@@ -643,38 +674,39 @@ const addElement = (type) => {
             </div>
           );
       case 'dateTime':
-        return (
-          <div style={wrapperStyle}>
-            {renderLabel(settings?.label || element.label)}
-            {settings?.useCurrentDate ? (
-              <input
-                type="text"
-                value={new Date().toLocaleDateString('en-US')}
-                readOnly
-                style={{
-                  borderRadius: '8px',
-                  padding: '10px',
-                  border: '1px solid #ced4da',
-                  textAlign: 'center'
-                }}
-              />
-            ) : (
-              <input
-                type="date"
-                style={{
-                  borderRadius: '8px',
-                  padding: '10px',
-                  border: '1px solid #ced4da',
-                  textAlign: 'center'
-                }}
-              />
-            )}
-          </div>
-        );    
+      return (
+        <div style={wrapperStyle}>
+          {settings?.label && <label>{settings.label}</label>}
+           {settings?.useCurrentDate ? (
+
+            <input
+              type="text"
+              value={new Date().toLocaleDateString('en-US')}
+              readOnly
+              style={{
+                borderRadius: '8px',
+                padding: '10px',
+                border: '1px solid #ced4da',
+                textAlign: 'center'
+              }}
+            />
+          ) : (
+            <input
+              type="date"
+              style={{
+                borderRadius: '8px',
+                padding: '10px',
+                border: '1px solid #ced4da',
+                textAlign: 'center'
+              }}
+            />
+          )}
+        </div>
+      );    
       case 'dropdown':
         return (
           <div style={wrapperStyle}>
-          {renderLabel(settings?.label || element.label)}
+          {settings?.label && <label>{settings.label}</label>}
           <select
               style={{
                 borderRadius: '8px',
@@ -695,7 +727,7 @@ const addElement = (type) => {
       case 'boolean':
         return (
         <div style={wrapperStyle}>
-          {renderLabel(settings?.label || element.label)}
+          {settings?.label && <label>{settings.label}</label>}
             <select
               value={settings?.defaultBoolean || 'true'}
               onChange={(e) => updateElementSettings(element.id, { ...settings, defaultBoolean: e.target.value })}
@@ -714,7 +746,7 @@ const addElement = (type) => {
       case 'number':
         return (
         <div style={wrapperStyle}>
-          {renderLabel(settings?.label || element.label)}
+          {settings?.label && <label>{settings.label}</label>}
             <input
               type="number"
               min={settings?.min}
@@ -742,9 +774,9 @@ const addElement = (type) => {
             justifyContent: 'center',
           }}
         >
+          {/* Password Input Field and Show Password Option */}
           <div style={wrapperStyle}>
-          {renderLabel(settings?.label || element.label)}
-          <input
+          {settings?.label && <label>{settings.label}</label>}<input
               type={settings?.showPasswordOption && settings?.showPassword ? 'text' : 'password'}
               placeholder={settings?.placeholder || 'Enter password'}
               required={settings?.required}
@@ -755,9 +787,9 @@ const addElement = (type) => {
               style={{
                 borderRadius: '8px',
                 padding: '10px',
-                width: '300px',
+                width: '300px', // Adjust the width as needed
                 border: settings?.isValid === false ? '2px solid #ff0000' : '1px solid #ced4da',
-                textAlign: 'left',
+                textAlign: 'left', // Ensures the placeholder text stays aligned left
                 marginRight: '10px',
               }}
             />
@@ -773,11 +805,13 @@ const addElement = (type) => {
               </label>
             )}
           </div>
+          {/* Password Requirements */}
           <div style={{ marginTop: '10px', textAlign: settings?.alignment || 'center', width: '100%', display: 'flex', flexDirection: 'column', alignItems: settings?.alignment === 'left' ? 'flex-start' : settings?.alignment === 'right' ? 'flex-end' : 'center' }}>
             {settings?.passwordLength && <p style={{ marginBottom: '5px' }}>Requires Minimum Length: {settings.passwordLength}</p>}
             {settings?.requireSymbols && <p style={{ marginBottom: '5px' }}>Requires Symbols: Yes</p>}
             {settings?.requireNumbers && <p>Requires Numbers: Yes</p>}
           </div>
+          {/* Validation Error */}
           {!settings?.isValid && settings?.isValid !== undefined && (
             <span style={{ color: '#ff0000', fontSize: '0.8em', marginTop: '5px' }}>Password does not meet requirements</span>
           )}
@@ -794,7 +828,7 @@ const addElement = (type) => {
         );
     }
   };
-
+  
   const areRequiredFieldsFilled = () => {
     return formElements.every((el) => {
       if (el.required) {
@@ -823,17 +857,18 @@ const addElement = (type) => {
   </div>
 
   {/* Label Input (Required) */}
-  <div className="form-label-section" style={{ marginBottom: '20px' }}>
-    <label htmlFor="form-label" className="sidebar-label">Label (Required):</label>
-    <input
-      id="form-label"
-      type="text"
-      value={formLabel}
-      onChange={(e) => setFormLabel(e.target.value)}
-      placeholder="Enter form label"
-      className="form-input"
-    />
-  </div>
+<div className="form-label-section" style={{ marginBottom: '20px' }}>
+  <label htmlFor="form-label" className="sidebar-label">Label (Required):</label>
+  <input
+    id="form-label"
+    type="text"
+    value={formLabel}
+    onChange={(e) => setFormLabel(e.target.value)}
+    placeholder="Enter form label"
+    className="form-input"
+  />
+</div>
+
 
   <div className="element-input-wrapper" style={{ display: 'flex', gap: '10px' }}>
     <div className="element-selector">
@@ -912,127 +947,299 @@ const addElement = (type) => {
 
       {selectedElement && (
   <div className="element-editor">
+    <div className="element-editor-header">
     <h3>Edit Element</h3>
-
-    <label>
-      Key:
-      <input
-        type="text"
-        value={draftSettings?.key || ''}
-        onChange={(e) => {
-          const updatedKey = e.target.value;
-          setDraftSettings((prev) => ({ ...prev, key: updatedKey }));
-          updateElementSettings(selectedElement.id, { ...draftSettings, key: updatedKey });
+      <button
+        onClick={() => {
+          if (window.confirm('Are you sure you want to delete this element?')) {
+            removeElement(selectedElement.id);
+          }
         }}
-      />
-    </label>
-
-    <label>
-      Label:
-      <input
-        type="text"
-        value={draftSettings?.label || ''}
-        onChange={(e) => {
-          const updatedLabel = e.target.value;
-          setDraftSettings((prev) => ({ ...prev, label: updatedLabel }));
-          updateElementSettings(selectedElement.id, { ...draftSettings, label: updatedLabel });
-        }}
-      />
-    </label>
-
-    {selectedElement.type === 'heading' && (
-      <label>
-        Header Level:
-        <select
-          value={draftSettings?.headerLevel || 'h1'}
-          onChange={(e) => {
-            const updatedHeaderLevel = e.target.value;
-            setDraftSettings((prev) => ({ ...prev, headerLevel: updatedHeaderLevel }));
-            updateElementSettings(selectedElement.id, { ...draftSettings, headerLevel: updatedHeaderLevel });
-          }}
-        >
-          <option value="h1">H1</option>
-          <option value="h2">H2</option>
-          <option value="h3">H3</option>
-          <option value="h4">H4</option>
-          <option value="h5">H5</option>
-          <option value="h6">H6</option>
-        </select>
-      </label>
-    )}
-
-    <label>
-      Alignment:
-      <select
-        value={draftSettings?.alignment || 'center'}
-        onChange={(e) => {
-          const updatedAlignment = e.target.value;
-          setDraftSettings((prev) => ({ ...prev, alignment: updatedAlignment }));
-          updateElementSettings(selectedElement.id, { ...draftSettings, alignment: updatedAlignment });
-        }}
+        className="delete-element"
       >
-        <option value="left">Left</option>
-        <option value="center">Center</option>
-        <option value="right">Right</option>
-      </select>
-    </label>
-
-    {(selectedElement.type === 'inputText' || selectedElement.type === 'email') && (
-      <label>
-        Placeholder Text:
-        <input
-          type="text"
-          value={draftSettings?.placeholder || ''}
-          onChange={(e) => {
-            const updatedPlaceholder = e.target.value;
-            setDraftSettings((prev) => ({ ...prev, placeholder: updatedPlaceholder }));
-            updateElementSettings(selectedElement.id, { ...draftSettings, placeholder: updatedPlaceholder });
-          }}
-        />
-      </label>
-    )}    {selectedElement.type !== 'divider' && (
-      <>
-        {['inputText', 'email', 'dateTime', 'dropdown', 'boolean', 'number', 'file'].includes(selectedElement.type) && (
-          <div className="checkbox-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <label>Required</label>
+        Remove Element
+      </button>
+    </div>
+          <label>
+          Key:
+          <input
+            type="text"
+            value={draftSettings?.key || ''}
+            onChange={(e) =>
+              setDraftSettings((prev) => ({ ...prev, key: e.target.value }))
+            }
+           />
+          </label>
+          <label>
+            Label:
+            <input
+              type="text"
+              value={draftSettings?.label || ''}
+              onChange={(e) =>
+                setDraftSettings((prev) => ({ ...prev, label: e.target.value }))
+              }
+            />
+          </label>
+          <div className="checkbox-wrapper">
+            <label>
+    Required:
+            </label>
             <input
               type="checkbox"
               checked={draftSettings?.required || false}
-              onChange={(e) => {
-                setDraftSettings((prev) => ({ ...prev, required: e.target.checked }));
-                updateElementSettings(selectedElement.id, { ...draftSettings, required: e.target.checked });
-              }}
-              style={{ marginLeft: '10px' }}
+              onChange={(e) =>
+                setDraftSettings((prev) => ({
+                  ...prev,
+                  required: e.target.checked,
+                }))
+              }
             />
           </div>
-        )}
-      </>
-    )}
-    
-    <button
-      onClick={() => {
-        if (window.confirm('Are you sure you want to delete this element?')) {
-          removeElement(selectedElement.id);
+          {selectedElement.type === 'heading' && (
+            <label>
+              Header Level:
+              <select
+                value={draftSettings?.headerLevel || 'h1'}
+                onChange={(e) =>
+                  setDraftSettings((prev) => ({
+                    ...prev,
+                    headerLevel: e.target.value,
+                  }))
+                }
+              >
+                <option value="h1">H1</option>
+                <option value="h2">H2</option>
+                <option value="h3">H3</option>
+                <option value="h4">H4</option>
+                <option value="h5">H5</option>
+                <option value="h6">H6</option>
+              </select>
+            </label>
+          )}
+          <label>
+            Alignment:
+            <select
+              value={draftSettings?.alignment || 'center'}
+              onChange={(e) =>
+                setDraftSettings((prev) => ({ ...prev, alignment: e.target.value }))
+              }
+            >
+              <option value="left">Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+            </select>
+          </label>
+          {(selectedElement.type === 'inputText' || selectedElement.type === 'email') && (
+            <label>
+              Placeholder Text:
+              <input
+                type="text"
+                value={draftSettings?.placeholder || ''}
+                onChange={(e) =>
+                  setDraftSettings((prev) => ({ ...prev, placeholder: e.target.value }))
+                }
+              />
+            </label>
+          )}
+          {selectedElement.type === 'dateTime' && (
+            <label>
+              Use Current Date:
+              <input
+                type="checkbox"
+                checked={draftSettings?.useCurrentDate || false}
+                onChange={(e) =>
+                  setDraftSettings((prev) => ({ ...prev, useCurrentDate: e.target.checked }))
+                }
+              />
+            </label>
+          )}
+{selectedElement.type === 'dropdown' && (
+  <>
+{selectedElement.type === 'dropdown' && (
+  <>
+    <div className="dropdown-options-container">
+      <label>Dropdown Options:</label>
+      <button
+        onClick={() =>
+          setDraftSettings((prev) => ({
+            ...prev,
+            dropdownOptions: [...(prev.dropdownOptions || []), ''],
+          }))
         }
-      }}
-      className="delete-element custom-button"
-      style={{
-        backgroundColor: '#dc3545',
-        color: 'white',
-        border: 'none',
-        padding: '10px 20px',
-        textAlign: 'center',
-        fontSize: '16px',
-        cursor: 'pointer',
-        margin: '5px',
-        borderRadius: '6px',
-      }}
-    >
-      Delete Element
-    </button>
-  </div>
+        className="add-option"
+      >
+        +
+      </button>
+    </div>
+    {draftSettings?.dropdownOptions?.map((option, idx) => (
+      <div key={idx} style={{ display: 'flex', alignItems: 'center' }}>
+        <input
+          type="text"
+          value={option}
+          onChange={(e) =>
+            setDraftSettings((prev) => {
+              const updatedOptions = [...prev.dropdownOptions];
+              updatedOptions[idx] = e.target.value;
+              return { ...prev, dropdownOptions: updatedOptions };
+            })
+          }
+        />
+        <button
+          onClick={() =>
+            setDraftSettings((prev) => ({
+              ...prev,
+              dropdownOptions: prev.dropdownOptions.filter((_, i) => i !== idx),
+            }))
+          }
+          style={{
+            marginLeft: '10px',
+            padding: '5px 10px',
+            color: 'white',
+            backgroundColor: 'red',
+            borderRadius: '4px',
+            cursor: 'pointer',
+          }}
+        >
+          X
+        </button>
+      </div>
+    ))}
+  </>
 )}
 
+  </>
+)}
+
+          {selectedElement.type === 'boolean' && (
+            <label>
+              Default Boolean Value:
+              <select
+                value={draftSettings?.defaultBoolean || 'true'}
+                onChange={(e) =>
+                  setDraftSettings((prev) => ({ ...prev, defaultBoolean: e.target.value }))
+                }
+              >
+                <option value="true">True</option>
+                <option value="false">False</option>
+              </select>
+            </label>
+          )}
+          {selectedElement.type === 'number' && (
+            <>
+              <label>
+                Minimum Value:
+                <input
+                  type="number"
+                  value={draftSettings?.min || ''}
+                  onChange={(e) =>
+                    setDraftSettings((prev) => ({ ...prev, min: e.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                Maximum Value:
+                <input
+                  type="number"
+                  value={draftSettings?.max || ''}
+                  onChange={(e) =>
+                    setDraftSettings((prev) => ({ ...prev, max: e.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                Step Value:
+                <input
+                  type="number"
+                  value={draftSettings?.step || ''}
+                  onChange={(e) =>
+                    setDraftSettings((prev) => ({ ...prev, step: e.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                Default Value:
+                <input
+                  type="number"
+                  value={draftSettings?.defaultValue || ''}
+                  onChange={(e) =>
+                    setDraftSettings((prev) => ({ ...prev, defaultValue: e.target.value }))
+                  }
+                />
+              </label>
+            </>
+          )}
+          {selectedElement.type === 'password' && (
+            <>
+              <label>
+                Show Password Option:
+                <input
+                  type="checkbox"
+                  checked={draftSettings?.showPasswordOption || false}
+                  onChange={(e) =>
+                    setDraftSettings((prev) => ({
+                      ...prev,
+                      showPasswordOption: e.target.checked,
+                    }))
+                  }
+                />
+              </label>
+              <label>
+                Minimum Password Length:
+                <input
+                  type="number"
+                  value={draftSettings?.passwordLength || ''}
+                  onChange={(e) =>
+                    setDraftSettings((prev) => ({
+                      ...prev,
+                      passwordLength: e.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <label>
+                Requires Symbols:
+                <input
+                  type="checkbox"
+                  checked={draftSettings?.requireSymbols || false}
+                  onChange={(e) =>
+                    setDraftSettings((prev) => ({
+                      ...prev,
+                      requireSymbols: e.target.checked,
+                    }))
+                  }
+                />
+              </label>
+              <label>
+                Requires Numbers:
+                <input
+                  type="checkbox"
+                  checked={draftSettings?.requireNumbers || false}
+                  onChange={(e) =>
+                    setDraftSettings((prev) => ({
+                      ...prev,
+                      requireNumbers: e.target.checked,
+                    }))
+                  }
+                />
+              </label>
+            </>
+          )}
+          <button
+            onClick={applyDraftChanges}
+            className="save-changes"
+
+            disabled={!areRequiredFieldsFilled()}
+          >
+            Save Changes
+          </button>
+          <button
+            onClick={cancelChanges}
+            className="cancel-button"
+          >
+            Cancel
+          </button>      
+        </div>
+      )}
     </div>
   );
 };

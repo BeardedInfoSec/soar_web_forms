@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import './Navbar.css';
 import logo from '../assets/images/splunk_app.png';
 
-const Navbar = ({ isAuthenticated, onLogout, username }) => {
+const Navbar = ({ isAuthenticated, onLogout, username, userRole }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const dropdownRef = useRef(null); // Reference for the dropdown
+    const dropdownRef = useRef(null);
 
     const toggleDropdown = () => {
         setIsDropdownOpen(prev => !prev);
@@ -42,10 +42,10 @@ const Navbar = ({ isAuthenticated, onLogout, username }) => {
             <nav className="navbar-links">
                 <Link to="/view-forms" className="navbar-link">View Forms</Link>
 
-                {(username === 'admin_user' || username === 'developer') && (
+                {(userRole === 'admin' || userRole === 'developer') && (
                     <Link to="/form-builder" className="navbar-link">Form Builder</Link>
                 )}
-                {username === 'admin_user' && (
+                {userRole === 'admin' && (
                     <div className="dropdown" ref={dropdownRef}>
                         <button onClick={toggleDropdown} className="navbar-link dropdown-toggle">
                             Admin Panel

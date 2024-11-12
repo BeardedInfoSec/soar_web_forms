@@ -39,7 +39,7 @@ body {
   display: block;
   color: #b5b5b5;
   margin-bottom: 5px;
-  font-weight: bold;
+  font-weight: 600; /* Bold for better readability */
 }
 
 .sidebar input[type="text"],
@@ -47,7 +47,7 @@ body {
   max-width: 280px;
   width: 90%;
   padding: 10px;
-  border-radius: 6px;
+  border-radius: 4px;
   border: 1px solid #505158;
   background-color: #26282c;
   color: #b5b5b5;
@@ -66,7 +66,7 @@ body {
 .form-input {
   width: 100%;
   padding: 10px;
-  border-radius: 6px;
+  border-radius: 4px;
   border: 1px solid #505158;
   background-color: #26282c;
   color: #b5b5b5;
@@ -79,7 +79,7 @@ body {
   color: #ffffff;
   border: none;
   padding: 12px;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
   width: 100%;
   font-size: 1em;
@@ -87,7 +87,7 @@ body {
 }
 
 .load-form-button:hover {
-  background-color: #602CA1; /* Darker shade for hover */
+  background-color: #602CA1;
 }
 
 .element-button,
@@ -100,7 +100,7 @@ body {
   background-color: #26282c;
   color: #b5b5b5;
   border: none;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
   font-size: 1em;
   transition: background-color 0.3s, transform 0.2s;
@@ -118,10 +118,10 @@ body {
   display: block;
   width: 100%;
   padding: 14px;
-  background-color: #ff4242;
+  background-color: #940c0c; /* Danger color */
   color: #ffffff;
   border: none;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
   font-size: 1.1em;
   transition: background-color 0.3s;
@@ -129,11 +129,11 @@ body {
 }
 
 .reset-form-button:hover {
-  background-color: #ff0f0f;
+  background-color: #700505;
 }
 
 .save-form-button {
-  background-color: #3993FF;
+  background-color: #3993FF; /* Success color */
   color: #ffffff;
 }
 
@@ -212,8 +212,81 @@ body {
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-  height: calc(100% - 40px);
   overflow-y: auto;
+  height: calc(100% - 40px);
+  display: flex;
+  flex-direction: column;
+}
+
+.element-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.element-editor h3 {
+  margin: 0;
+  color: #fafafa;
+}
+
+.element-editor .checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Adds spacing between the label and checkbox */
+  margin-bottom: 10px;
+}
+
+.element-editor .checkbox-wrapper label {
+  font-weight: bold;
+  color: #b5b5b5;
+}
+
+.element-editor .checkbox-wrapper input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  appearance: none;
+  background-color: #26282c;
+  border: 1px solid #505158;
+  border-radius: 3px;
+  cursor: pointer;
+  position: relative;
+}
+
+.element-editor .checkbox-wrapper input[type="checkbox"]:checked {
+  background-color: #3993FF;
+  border-color: #2273c4;
+}
+
+.element-editor .checkbox-wrapper input[type="checkbox"]::after {
+  content: '✔';
+  color: #ffffff;
+  font-size: 14px;
+  position: absolute;
+  top: 1px;
+  left: 2px;
+  display: none;
+}
+
+.element-editor .checkbox-wrapper input[type="checkbox"]:checked::after {
+  display: block;
+}
+
+.delete-element {
+  background-color: #cc3a3a;
+  color: #f1f1f1;
+  border: none;
+  padding: 5px 3px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+  transition: background-color 0.3s;
+  margin-left: 50px;
+}
+
+.delete-element:hover {
+  background-color: #cc3a3a99;
 }
 
 .element-editor label {
@@ -237,7 +310,6 @@ body {
   margin-bottom: 15px;
 }
 
-/* Styling for checkboxes */
 .element-editor input[type="checkbox"] {
   appearance: none;
   background-color: #26282c;
@@ -247,7 +319,7 @@ body {
   border-radius: 3px;
   position: relative;
   cursor: pointer;
-  margin-left: auto; /* Aligns to the right */
+  margin-right: 8px;
 }
 
 .element-editor input[type="checkbox"]:checked {
@@ -272,219 +344,86 @@ body {
 .element-editor .checkbox-label {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   color: #b5b5b5;
   font-weight: bold;
   margin-bottom: 10px;
 }
 
-
-.reset-form-button,
-.save-form-button {
-  display: block;
-  width: 100%;
-  padding: 14px;
-  background-color: #ff4242; /* Updated to a more vibrant danger color */
-  color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1.1em;
-  transition: background-color 0.3s;
-  margin-bottom: 15px;
-}
-
-.reset-form-button:hover {
-  background-color: #ff0f0f;
-}
-
-.save-form-button {
-  background-color: #3993FF; /* Updated to a more vibrant success color */
-  color: #ffffff;
-}
-
-.save-form-button:hover {
-  background-color: #2273c4;
-}
-
-.form-builder {
-  flex: 1;
-  background: #0b0c0e;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-  overflow-y: auto;
-}
-
-.form-preview {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  background-color: #1a1c20;
-  padding: 20px;
-  border-radius: 8px;
-  border: 1px solid #43454b;
-}
-
-.form-element {
-  background-color: #26282c;
-  padding: 15px;
-  border: 1px solid #43454b;
-  border-radius: 8px;
-  position: relative;
-  display: flex;
+.dropdown-options-container {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  transition: background-color 0.3s;
-}
-
-.form-element:hover {
-  background-color: #2e3035;
-}
-
-.form-element p {
-  margin: 0;
-  flex-grow: 1;
-  color: #b5b5b5;
-  font-size: 1em;
-}
-
-.drag-handle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 25px;
-  height: 25px;
-  background-color: #3993FF;
-  color: #ffffff;
-  border-radius: 50%;
-  cursor: grab;
-  transition: background-color 0.3s;
-}
-
-.drag-handle:hover {
-  background-color: #2273c4;
-}
-
-.dragging-overlay {
-  padding: 10px;
-  background-color: #3993FF;
-  color: #ffffff;
-  border-radius: 4px;
-}
-
-.element-editor {
-  background-color: #1a1c20;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-  height: calc(100% - 40px);
-  overflow-y: auto;
-}
-
-.element-editor label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 5px;
-  color: #b5b5b5;
-}
-
-.element-editor input,
-.element-editor select,
-.element-editor textarea {
-  max-width: 90%; /* Adjusts the maximum width */
-  padding: 10px;
-  margin-top: 5px;
-  border: 1px solid #505158;
-  border-radius: 4px;
-  font-size: 1em;
-  background-color: #26282c;
-  color: #b5b5b5;
-  margin-bottom: 15px;
-}
-
-/* Styling for checkboxes */
-.element-editor input[type="checkbox"] {
-  appearance: none;
-  background-color: #26282c;
-  border: 1px solid #505158;
-  width: 20px;
-  height: 20px;
-  border-radius: 3px;
-  position: relative;
-  cursor: pointer;
-  margin-right: 8px;
-}
-
-.element-editor input[type="checkbox"]:checked {
-  background-color: #3993FF; /* Match the Splunk button color */
-  border-color: #2273c4; /* Darker border for contrast */
-}
-
-.element-editor input[type="checkbox"]::after {
-  content: '✔';
-  color: #ffffff;
-  font-size: 14px;
-  position: absolute;
-  top: 2px;
-  left: 4px;
-  display: none;
-}
-
-.element-editor input[type="checkbox"]:checked::after {
-  display: block;
-}
-
-.element-editor .checkbox-label {
-  display: flex;
-  align-items: center;
-  color: #b5b5b5;
-  font-weight: bold;
+  gap: 10px;
   margin-bottom: 10px;
 }
 
-
-/* Styling for the Add Option Button */
 .add-option {
-  background-color: #85f415; /* Vibrant green success color */
-  color: #ffffff;
+  background-color: #25cd0c;
+  color: #f1f1f1;
   border: none;
-  padding: 10px 15px;
-  border-radius: 6px;
+  padding: 5px 3px;
+  border-radius: 4px;
   cursor: pointer;
   font-size: 1em;
+  font-weight: bold;
   transition: background-color 0.3s;
-  margin-bottom: 10px;
+  margin-left: 50px;
 }
 
 .add-option:hover {
-  background-color: #6bcc0a; /* Darker green for hover */
+  background-color: #26cd0c9d;
 }
 
 .save-changes,
 .cancel-button,
 .delete-element,
 .add-option {
-  display: block; /* Ensures buttons are stacked vertically */
-  width: 100%; /* Ensures full width */
-  margin-bottom: 10px; /* Adds space between the buttons */
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
   color: #ffffff;
 }
 
 .save-changes {
-  background-color: #85f415;
+  background-color: #2273c4;
+  color: #f1f1f1;
+  border: none;
+  padding: 10px 20px;  /* Adjust padding for better proportion */
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+  transition: background-color 0.3s;
+  width: auto; /* Makes the button fit its content */
+  max-width: auto; /* Set a max width if desired */
+  margin-bottom: 10px;
 }
 
 .save-changes:hover {
-  background-color: #6bcc0a;
+  background-color: #2273c475;
 }
 
+
 .cancel-button {
-  background-color: #3993FF;
+  background-color: #5d5d5d; /* Light color for contrast */
+  color: #f1f1f1; /* Dark text for readability */
+  border: none;
+  padding: 12px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold; /* Makes the text bold */
+  transition: background-color 0.3s, transform 0.2s;
+  width: 100%; /* Ensures full width */
+  margin-bottom: 10px; /* Adds space below the button */
 }
 
 .cancel-button:hover {
-  background-color: #2273c4;
+  background-color: #5d5d5d77; /* Slightly darker background on hover */
+  transform: scale(1.02); /* Adds a slight scaling effect on hover */
+}
+
+.cancel-button:active {
+  background-color: #d1d1d1; /* Even darker when clicked */
 }
 
 .delete-element {
@@ -495,7 +434,6 @@ body {
   background-color: #ff0f0f;
 }
 
-/* Styling for the Load Saved Form Section */
 .load-form-section {
   margin-bottom: 15px;
 }
@@ -509,7 +447,7 @@ body {
 .load-form-section select {
   width: 100%;
   padding: 10px;
-  border-radius: 6px;
+  border-radius: 4px;
   border: 1px solid #505158;
   background-color: #26282c;
   color: #b5b5b5;
@@ -521,29 +459,29 @@ body {
   background-color: #2273c4;
 }
 
-/* Styling for Remove Button */
 .remove-option {
-  background-color: #ff4242; /* Vibrant red for danger */
+  background-color: #ff4242;
   color: #ffffff;
   border: none;
   padding: 10px;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
   font-size: 1em;
   transition: background-color 0.3s;
 }
 
 .remove-option:hover {
-  background-color: #ff0f0f; /* Darker red for hover */
+  background-color: #ff0f0f;
 }
 
 .element-input-wrapper {
   display: flex;
-  justify-content: space-between; /* Aligns the sections side by side */
-  gap: 15px; /* Space between sections */
+  justify-content: space-between;
+  gap: 15px;
 }
 
-.element-selector, .input-selector {
+.element-selector,
+.input-selector {
   flex: 1;
   background-color: #1a1c20;
   padding: 10px;
@@ -551,28 +489,31 @@ body {
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
 }
 
-.element-selector h3, .input-selector h3 {
-  text-align: center; /* Center align the section titles */
+.element-selector h3,
+.input-selector h3 {
+  text-align: center;
   border-bottom: 1px solid #43454b;
   padding-bottom: 5px;
   margin-bottom: 10px;
   color: #b5b5b5;
 }
 
-.element-button, .input-button {
-  width: 100px; /* Adjust to keep buttons uniform */
-  height: 48px; /* Make buttons more square */
-  margin: 5px auto; /* Center the buttons */
+.element-button,
+.input-button {
+  width: 100px;
+  height: 48px;
+  margin: 5px auto;
   background-color: #26282c;
   color: #b5b5b5;
   border: none;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
   font-size: 0.9em;
   transition: background-color 0.3s, transform 0.2s;
 }
 
-.element-button:hover, .input-button:hover {
+.element-button:hover,
+.input-button:hover {
   background-color: #2e3035;
   transform: scale(1.03);
 }
@@ -581,9 +522,9 @@ body {
   margin-top: 10px;
   padding: 8px 12px;
   color: #ffffff;
-  background-color: #f49106; /* Vibrant green color */
+  background-color: #3993FF;
   border: none;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
   font-size: 0.9em;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
@@ -591,5 +532,30 @@ body {
 }
 
 .add-option-button:hover {
-  background-color: #c27305; /* Darker green for hover */
+  background-color: #2273c4;
+}
+
+/* Style for the file upload button */
+.custom-file-label {
+  background-color: #3993FF; /* Blue color for the button */
+  color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-block;
+  transition: background-color 0.3s;
+}
+
+.custom-file-label:hover {
+  background-color: #2273c4; /* Darker blue on hover */
+}
+
+.custom-file-input {
+  display: none; /* Hide the default file input */
+}
+
+/* Style for the file name text */
+.file-name {
+  margin-left: 10px;
+  color: #b5b5b5; /* Light gray color for the file name */
 }

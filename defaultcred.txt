@@ -1,3 +1,8 @@
 admin_user:soaring42
 dev_user:soardev
 read_user:soaruser
+
+
+
+Tag = firewall
+Allow/Block = block_ioc
