@@ -1,70 +1,146 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# SOAR Web Form Builder
 
-## Available Scripts
+This project is a form builder built with React and Node.js, designed to work with PostgreSQL as the backend database. The following instructions will help you set up the environment, configure the necessary components, and run the application.
 
-In the project directory, you can run:
+## Prerequisites
 
-### `npm start`
+- **Node.js**: Ensure you have Node.js installed (v14 or higher is recommended).
+- **PostgreSQL**: Install PostgreSQL (v13 or higher is recommended).
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Project Setup
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 1. Clone the Repository
 
-### `npm test`
+```bash
+git clone https://github.com/BeardedInfoSec/soar_web_forms
+cd soar_web_forms
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 2. Install Dependencies
 
-### `npm run build`
+```bash
+npm install
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 3. Configure Server Ports
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Set the Node.js server to use port **3000** by including the following in your `.env` or `package.json`:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```json
+"scripts": {
+  "start": "PORT=3000 node server.js"
+}
+```
 
-### `npm run eject`
+Or directly set the environment variable:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```bash
+export PORT=3000
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### 4. Run `server.js` and `proxy.js`
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+These files will handle the backend server functionalities. Ensure they’re both running:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+node server.js
+node proxy.js
+```
 
-## Learn More
+### 5. PostgreSQL Database Setup
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Create a PostgreSQL database and tables for storing configuration and user data.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+#### PostgreSQL Configurations
 
-### Code Splitting
+Replace `<YOUR_IP>` with your actual IP address:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```plaintext
+PG_USER=postgres
+PG_HOST=<YOUR_IP>
+PG_DATABASE=soar_web_forms
+PG_PASSWORD=soaring42
+```
 
-### Analyzing the Bundle Size
+#### Creating the Database and Tables
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+1. Log in to PostgreSQL:
+   ```bash
+   psql -U postgres
+   ```
+2. Create the database:
+   ```sql
+   CREATE DATABASE soar_web_forms;
+   ```
 
-### Making a Progressive Web App
+3. Connect to the database:
+   ```sql
+   \c soar_web_forms;
+   ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+4. Create the tables `configuration`, `forms`, and `users` using the following SQL commands:
 
-### Advanced Configuration
+```sql
+-- Configuration Table
+CREATE TABLE configuration (
+    id SERIAL PRIMARY KEY,
+    ph_auth_token VARCHAR,
+    server VARCHAR,
+    ssl_verification BOOLEAN,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+-- Forms Table
+CREATE TABLE forms (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    label VARCHAR(255) NOT NULL,
+    tags TEXT,
+    elements JSONB,
+    xml_data TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-### Deployment
+-- Users Table
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    label VARCHAR(255) NOT NULL,
+    tags TEXT,
+    elements JSONB,
+    xml_data TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### 6. Add Default User Accounts
 
-### `npm run build` fails to minify
+Populate the `users` table with the following default user accounts:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```sql
+INSERT INTO users (name, label) VALUES
+('admin_user', 'soaring42'),
+('dev_user', 'soardev'),
+('read_user', 'soaruser');
+```
+
+### Running the Application
+
+Once the setup is complete, start the application:
+
+```bash
+npm start
+```
+
+Visit `http://localhost:3000` in your browser to access the application.
+
+### Additional Notes
+
+- **Server Configuration**: Ensure that `proxy.js` and `server.js` are properly configured to handle routing and API requests.
+- **Database Connection**: Adjust the `PG_HOST` in your environment file to match your server’s IP.
+
+This setup should provide a working environment for the SOAR Web Form Builder project. 
