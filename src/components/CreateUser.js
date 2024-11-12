@@ -88,7 +88,7 @@ const CreateUser = () => {
             <option value="Select Role" disabled>Select Role</option>
             <option value="admin">Admin</option>
             <option value="developer">Developer</option>
-            <option value="read_user">Read-Only</option>
+            <option value="read-only">Read-Only</option>
           </select>
           <button type="submit" className="create-user-button">Create User</button>
         </form>

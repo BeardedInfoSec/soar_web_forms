@@ -960,16 +960,17 @@ const addElement = (type) => {
         Remove Element
       </button>
     </div>
-          <label>
-          Key:
-          <input
-            type="text"
-            value={draftSettings?.key || ''}
-            onChange={(e) =>
-              setDraftSettings((prev) => ({ ...prev, key: e.target.value }))
-            }
-           />
-          </label>
+    <label>
+  Key:
+  <input
+    type="text"
+    value={draftSettings?.key || ''}
+    onChange={(e) =>
+      setDraftSettings((prev) => ({ ...prev, key: e.target.value }))
+    }
+    disabled={selectedElement?.type === 'file'} // Disable if the element type is 'file'
+  />
+</label>
           <label>
             Label:
             <input

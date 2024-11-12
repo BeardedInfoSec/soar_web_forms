@@ -62,8 +62,8 @@ const GrantPermissions = () => {
           <select value={role} onChange={(e) => setRole(e.target.value)} required>
             <option value="Select Role" disabled>Select Role</option>
             <option value="admin">Admin</option>
-            <option value="dev_user">Developer</option>
-            <option value="read_user">Read-Only</option>
+            <option value="developer">Developer</option>
+            <option value="read-only">Read-Only</option>
           </select>
           <button type="submit" className="grant-permissions-button">Grant Permissions</button>
         </form>

@@ -68,7 +68,7 @@ const App = () => {
                         <Route path="/login" element={isAuthenticated ? <Navigate to="/view-forms" /> : <Login onLogin={handleLogin} />} />
                         <Route
                             path="/view-forms"
-                            element={isAuthenticated && ['admin', 'developer', 'read_user'].includes(userRole) ? <ViewForms userRole={userRole} /> : <Navigate to="/login" />}
+                            element={isAuthenticated && ['admin', 'developer', 'read-only'].includes(userRole) ? <ViewForms userRole={userRole} /> : <Navigate to="/login" />}
                         />
                         <Route
                             path="/form-builder"
