@@ -3,6 +3,10 @@
 
 This project is a form builder built with React and Node.js, designed to work with PostgreSQL as the backend database. The following instructions will help you set up the environment, configure the necessary components, and run the application.
 
+## Repository
+
+GitHub Repository: [SOAR Web Form Builder](https://github.com/BeardedInfoSec/soar_web_forms)
+
 ## Prerequisites
 
 - **Node.js**: Ensure you have Node.js installed (v14 or higher is recommended).
@@ -31,11 +35,14 @@ Set the client (React app) to use port **3000** by including the following in yo
 set PORT=3000 & npm start
 ```
 
-This will start the React application on port 3000, while the server (`server.js`) remains on port 5000.
+This will start the React application on port 3000.
 
-### 4. Run `server.js` and `proxy.js`
+### 4. Server Ports
 
-These files will handle the backend server functionalities. Ensure they’re both running:
+- **server.js**: Runs on port **5000** to handle backend server requests.
+- **proxy.js**: Uses port **3001** to proxy requests between the frontend and the backend.
+
+Ensure both are running by executing:
 
 ```bash
 node server.js
@@ -137,4 +144,4 @@ Visit `http://localhost:3000` in your browser to access the application.
 - **Server Configuration**: Ensure that `proxy.js` and `server.js` are properly configured to handle routing and API requests.
 - **Database Connection**: Adjust the `PG_HOST` in your environment file to match your server’s IP.
 
-This setup should provide a working environment for the SOAR Web Form Builder project. 
+This setup should provide a working environment for the SOAR Web Form Builder project.
