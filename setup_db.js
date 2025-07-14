@@ -53,7 +53,7 @@ function askQuestion(query) {
 }
 
 async function dropTablesIfExist() {
-  const tables = ['users', 'forms', 'configuration'];
+  const tables = ['users', 'forms', 'configurations'];
   for (const table of tables) {
     const answer = await askQuestion(`Table "${table}" exists. Delete? (y/n): `);
     if (answer.toLowerCase() === 'y') {
@@ -67,7 +67,7 @@ async function dropTablesIfExist() {
 
 async function createTables() {
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS configuration (
+    CREATE TABLE IF NOT EXISTS configurations (
       id SERIAL PRIMARY KEY,
       ph_auth_token VARCHAR,
       server VARCHAR,
