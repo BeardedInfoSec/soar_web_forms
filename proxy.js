@@ -3,7 +3,7 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 
 const app = express();
 
-const target = process.env.TARGET_URL || 'https://192.168.50.160';
+const target = process.env.TARGET_URL || 'https://192.168.128.72';
 
 app.use(
   '/proxy',

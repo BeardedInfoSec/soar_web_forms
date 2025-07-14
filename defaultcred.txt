@@ -1,4 +1,4 @@
-admin_user:soaring42
+admin_user:s0aring42
 dev_user:soardev
 read_user:soaruser
 

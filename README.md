@@ -1,7 +1,6 @@
-
 # SOAR Web Form Builder
 
-This project is a form builder built with React and Node.js, designed to work with PostgreSQL as the backend database. The following instructions will help you set up the environment, configure the necessary components, and run the application.
+This project is a form builder built with React and Node.js, designed to use PostgreSQL as the backend database. Follow the instructions below to set up your environment and run the application.
 
 ## Repository
 
@@ -9,139 +8,78 @@ GitHub Repository: [SOAR Web Form Builder](https://github.com/BeardedInfoSec/soa
 
 ## Prerequisites
 
-- **Node.js**: Ensure you have Node.js installed (v14 or higher is recommended).
-- **PostgreSQL**: Install PostgreSQL (v13 or higher is recommended).
+- **Node.js** installed (v14 or higher recommended).
+- **PostgreSQL** installed and running (v13 or higher recommended).
 
-## Project Setup
+## Setup Instructions
 
-### 1. Clone the Repository
+### 1. Configure PostgreSQL Database
 
-```bash
-git clone https://github.com/BeardedInfoSec/soar_web_forms
-cd soar_web_forms
-```
-
-### 2. Install Dependencies
+- Install and run PostgreSQL.
+- Create the `soar_web_forms` database by running these commands in your terminal:
 
 ```bash
-npm install
+psql -U postgres
 ```
-
-### 3. Configure Client Port
-
-Set the client (React app) to use port **3000** by including the following in your `.env` or by directly setting it with the command:
+Then in the PostgreSQL prompt:
+```bash
+CREATE DATABASE soar_web_forms;
+\q
+```
+Create a PostgreSQL user with appropriate permissions or use your existing one.
 
 ```bash
-set PORT=3000 & npm start
+CREATE USER your_pg_username WITH PASSWORD 'your_pg_password';
 ```
 
-This will start the React application on port 3000.
+Grant all privileges on the database to the new user:
 
-### 4. Server Ports
+```bash
+GRANT ALL PRIVILEGES ON DATABASE soar_web_forms TO your_pg_username;
+```
+Exit the PostgreSQL prompt:
+```bash
+\q
+```
 
-- **server.js**: Runs on port **5000** to handle backend server requests.
-- **proxy.js**: Uses port **3001** to proxy requests between the frontend and the backend.
+### 2. Configure Environment Variables
 
-Ensure both are running by executing:
+Create a `.env` file in the project root to point to your PostgreSQL database. Example `.env` file:
 
+```env
+PG_USER=your_pg_username
+PG_HOST=your_pg_ip ##127.0.0.1 unless PostgreSQL is running on a different machine
+PG_DATABASE=soar_web_forms
+PG_PASSWORD=your_pg_password
+PG_PORT=5432
+
+JWT_SECRET=your_jwt_secret_here ##This can be whatever you want
+PORT=5000
+```
+Replace all values with your actual PostgreSQL credentials and a strong JWT secret.
+
+### 3. Create Database Tables and Seed Default Users
+Run the provided `create_db.js` script to automatically create all necessary tables (configuration, forms, and users) and insert default user accounts with properly hashed passwords.
+
+```bash
+node create_db.js
+```
+
+### 4. Start Backend and Frontend Servers
+Start the backend servers:
 ```bash
 node server.js
 node proxy.js
 ```
 
-### 5. PostgreSQL Database Setup
-
-Create a PostgreSQL database and tables for storing configuration and user data.
-
-#### PostgreSQL Configurations
-
-Replace `<YOUR_IP>` with your actual IP address:
-
-```plaintext
-PG_USER=postgres
-PG_HOST=<YOUR_IP>
-PG_DATABASE=soar_web_forms
-PG_PASSWORD=soaring42
-```
-
-#### Creating the Database and Tables
-
-1. Log in to PostgreSQL:
-   ```bash
-   psql -U postgres
-   ```
-2. Create the database:
-   ```sql
-   CREATE DATABASE soar_web_forms;
-   ```
-
-3. Connect to the database:
-   ```sql
-   \c soar_web_forms;
-   ```
-
-4. Create the tables `configuration`, `forms`, and `users` using the following SQL commands:
-
-```sql
--- Configuration Table
-CREATE TABLE configuration (
-    id SERIAL PRIMARY KEY,
-    ph_auth_token VARCHAR,
-    server VARCHAR,
-    ssl_verification BOOLEAN,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Forms Table
-CREATE TABLE forms (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    label VARCHAR(255) NOT NULL,
-    tags TEXT,
-    elements JSONB,
-    xml_data TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Users Table
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    label VARCHAR(255) NOT NULL,
-    tags TEXT,
-    elements JSONB,
-    xml_data TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### 6. Add Default User Accounts
-
-Populate the `users` table with the following default user accounts:
-
-```sql
-INSERT INTO users (name, label) VALUES
-('admin_user', 'soaring42'),
-('dev_user', 'soardev'),
-('read_user', 'soaruser');
-```
-
-### Running the Application
-
-Once the setup is complete, start the application:
-
+### 5. Start the React Frontend
+Set the React app port to 3000 and start it:
 ```bash
 set PORT=3000 & npm start
 ```
 
-Visit `http://localhost:3000` in your browser to access the application.
-
-### Additional Notes
-
-- **Server Configuration**: Ensure that `proxy.js` and `server.js` are properly configured to handle routing and API requests.
-- **Database Connection**: Adjust the `PG_HOST` in your environment file to match your server’s IP.
-
-This setup should provide a working environment for the SOAR Web Form Builder project.
+### 6. Access the Application
+Open your browser and navigate to:
+```bash
+http://localhost:3000
+```

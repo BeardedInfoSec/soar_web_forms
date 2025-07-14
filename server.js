@@ -1,4 +1,4 @@
-// require('dotenv').config();
+require('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
@@ -9,7 +9,7 @@ const app = express(); // Initialize the Express app
 
 // Allow CORS requests from your frontend
 app.use(cors({
-  origin: 'http://localhost:3000', // Replace with your frontend's actual URL
+  origin: 'http://localhost:3002', // Replace with your frontend's actual URL
 }));
 
 app.use(express.json()); // Parse incoming JSON requests
@@ -20,7 +20,7 @@ const pool = new Pool({
   host: process.env.PG_HOST,
   database: process.env.PG_DATABASE,
   password: process.env.PG_PASSWORD,
-  port: process.env.PG_PORT,
+  port: parseInt(process.env.PG_PORT, 10), // port should be a number
 });
 
 // Verify connection to the database and log current user
