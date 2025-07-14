@@ -47,6 +47,7 @@ Exit the PostgreSQL prompt:
 Create a `.env` file in the project root to point to your PostgreSQL database. Example `.env` file:
 
 ```env
+##PostgreSQL DB Info
 PG_USER=your_pg_username
 PG_HOST=your_pg_ip ##127.0.0.1 unless PostgreSQL is running on a different machine
 PG_DATABASE=soar_web_forms
@@ -55,6 +56,9 @@ PG_PORT=5432
 
 JWT_SECRET=your_jwt_secret_here ##This can be whatever you want
 PORT=5000
+
+##Splunk SOAR IP
+PROXY_TARGET=https://192.168.128.31
 ```
 Replace all values with your actual PostgreSQL credentials and a strong JWT secret.
 

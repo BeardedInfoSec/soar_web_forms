@@ -1,16 +1,23 @@
+require('dotenv').config(); // ← Add this line at the top
+
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
 const app = express();
 
-const target = process.env.TARGET_URL || 'https://192.168.128.72';
+const target = process.env.PROXY_TARGET; // ← Read from .env
+
+if (!target) {
+  console.error('❌ PROXY_TARGET not set in .env');
+  process.exit(1);
+}
 
 app.use(
   '/proxy',
   createProxyMiddleware({
     target,
     changeOrigin: true,
-    secure: false, // Disable SSL verification
+    secure: false, // Disable SSL verification (if SOAR uses self-signed cert)
     onProxyReq: (proxyReq) => {
       console.log('Proxying request:', proxyReq.path);
     },
@@ -23,5 +30,5 @@ app.use(
 
 const PORT = 3001;
 app.listen(PORT, () => {
-  console.log(`Proxy running on http://localhost:${PORT}`);
+  console.log(`🔁 Proxy running on http://localhost:${PORT} → ${target}`);
 });
