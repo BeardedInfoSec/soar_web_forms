@@ -55,10 +55,13 @@ PG_PASSWORD=your_pg_password
 PG_PORT=5432
 
 JWT_SECRET=your_jwt_secret_here ##This can be whatever you want
+## Server.js port
 PORT=5000
 
 ##Splunk SOAR IP
-PROXY_TARGET=https://192.168.128.31
+## Proxy.js ports
+PROXY_TARGET=https://192.168.128.31 ##Set this to your Splunk SOAR Server
+PROXY_PORT=3001 ## This might need to be changed depending on port conflicts
 ```
 Replace all values with your actual PostgreSQL credentials and a strong JWT secret.
 
@@ -85,5 +88,5 @@ set PORT=3000 & npm start
 ### 6. Access the Application
 Open your browser and navigate to:
 ```bash
-http://localhost:3000
+http://localhost:3002
 ```
