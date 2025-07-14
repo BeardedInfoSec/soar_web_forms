@@ -51,48 +51,51 @@ const Configuration = () => {
     }
   };
 
-  const testConnection = async () => {
-    setConnectionStatus('Testing connection...');
-    try {
-      // Fetch the server and ph_auth_token from the backend
-      const configResponse = await axios.get('http://localhost:5000/test_connection');
-  
-      if (configResponse.status !== 200) {
-        throw new Error('Failed to fetch configuration for test connection');
-      }
-  
-      const { server, ph_auth_token } = configResponse.data;
-  
-      // Ensure required fields are present
-      if (!server || !ph_auth_token) {
-        throw new Error('Missing server URL or auth token in configuration');
-      }
-  
-      const apiUrl = `${server}/rest/version`;
-      console.log('Sending request to', apiUrl);
-  
-      // Perform a test connection to the server
-      const response = await fetch(apiUrl, {
-        method: 'GET',
-        headers: {
-          'ph-auth-token': ph_auth_token,
-          'Content-Type': 'application/json',
-        },
-        mode: 'cors',
-      });
-  
-      if (response.ok) {
-        const data = await response.json();
-        setConnectionStatus(`Connection successful: Version ${data.version}`);
-      } else {
-        throw new Error(`Connection failed: ${response.status} ${response.statusText}`);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      setConnectionStatus(`Connection failed: ${error.message}`);
+const testConnection = async () => {
+  setConnectionStatus('Testing connection...');
+  try {
+    // Fetch the stored config from your backend
+    const configResponse = await axios.get('http://localhost:5000/test_connection');
+
+    if (configResponse.status !== 200) {
+      throw new Error('Failed to fetch configuration for test connection');
     }
-  };
-  
+
+    const { ph_auth_token } = configResponse.data;
+
+    // Call your proxy server instead of direct server URL
+    const apiUrl = `http://localhost:3001/proxy/rest/version`;
+    console.log('Sending request to', apiUrl);
+
+    // Perform fetch to proxy with auth token header
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'ph-auth-token': ph_auth_token,
+        'Content-Type': 'application/json',
+      },
+      mode: 'cors',
+    });
+
+    if (response.ok) {
+      const text = await response.text();
+      console.log('Raw response text:', text);
+
+      try {
+        const data = JSON.parse(text);
+        setConnectionStatus(`Connection successful: Version ${data.version}`);
+      } catch (err) {
+        setConnectionStatus(`Failed to parse JSON response: ${err.message}`);
+      }
+
+    } else {
+      throw new Error(`Connection failed: ${response.status} ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    setConnectionStatus(`Connection failed: ${error.message}`);
+  }
+};
 
   return (
     <div className="configuration-container">
