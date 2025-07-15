@@ -12,7 +12,7 @@ const AdminPage = () => {
   const createUser = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/admin/create-user', {
+      const response = await axios.post('http://localhost:5001/admin/create-user', {
         username,
         password,
         role,
@@ -29,7 +29,7 @@ const AdminPage = () => {
   const resetPassword = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/admin/reset-password', {
+      const response = await axios.post('http://localhost:5001/admin/reset-password', {
         username,
         newPassword,
       });
@@ -43,7 +43,7 @@ const AdminPage = () => {
   const grantPermissions = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/admin/grant-permissions', {
+      const response = await axios.post('http://localhost:5001/admin/grant-permissions', {
         username,
         newRole: role,
       });

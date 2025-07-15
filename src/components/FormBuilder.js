@@ -17,7 +17,7 @@ const ELEMENT_TYPES = [
 const INPUT_FIELDS = [
   { id: 'inputText', label: 'Input Text', type: 'text' },
   { id: 'email', label: 'Email', type: 'email' },
-  //{ id: 'password', label: 'Password', type: 'password' }, 
+  { id: 'password', label: 'Password', type: 'password' }, 
   { id: 'dateTime', label: 'Date or Time', type: 'datetime-local' },
   { id: 'dropdown', label: 'Dropdown', type: 'dropdown' },
   { id: 'boolean', label: 'Boolean', type: 'dropdown' },
@@ -63,7 +63,7 @@ useEffect(() => {
 
 const loadSavedForms = async () => {
   try {
-    const response = await fetch('http://localhost:5000/forms');
+    const response = await fetch('http://localhost:5001/forms');
     if (!response.ok) {
       throw new Error(`Failed to fetch forms: ${response.status}`);
     }
@@ -85,7 +85,7 @@ const loadForm = async () => {
   }
 
   try {
-    const response = await fetch(`http://localhost:5000/forms/${encodeURIComponent(selectedForm)}`);
+    const response = await fetch(`http://localhost:5001/forms/${encodeURIComponent(selectedForm)}`);
     if (!response.ok) {
       throw new Error(`Failed to load form: ${response.status}`);
     }
@@ -282,7 +282,7 @@ const addElement = (type) => {
     
     // Send form data to backend
     try {
-      const response = await fetch('http://localhost:5000/save_form', {
+      const response = await fetch('http://localhost:5001/save_form', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -297,7 +297,7 @@ const addElement = (type) => {
         // Prompt the user to confirm overwrite
         if (window.confirm('A form with this name already exists. Do you want to overwrite it?')) {
           formData.overwrite = true;
-          const overwriteResponse = await fetch('http://localhost:5000/save_form', {
+          const overwriteResponse = await fetch('http://localhost:5001/save_form', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
