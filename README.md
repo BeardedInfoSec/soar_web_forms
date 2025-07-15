@@ -56,7 +56,7 @@ PG_PORT=5432
 
 JWT_SECRET=your_jwt_secret_here ##This can be whatever you want
 ## Server.js port
-PORT=5000
+PORT=5001
 
 ##Splunk SOAR IP
 ## Proxy.js ports
