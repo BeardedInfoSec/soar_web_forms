@@ -1,9 +1,13 @@
 require('dotenv').config();
 const express = require('express');
-const { createProxyMiddleware } = require('http-proxy-middleware');
+const https = require('https');
 const { Pool } = require('pg');
 
 const app = express();
+const PORT = process.env.PROXY_PORT || 3001;
+
+console.log('🛠 Starting proxy.js...');
+console.log('🧪 Creating DB Pool...');
 
 const pool = new Pool({
   user: process.env.PG_USER,
@@ -13,70 +17,87 @@ const pool = new Pool({
   port: parseInt(process.env.PG_PORT, 10),
 });
 
-// CORS middleware - must be before proxy middleware
-app.use((req, res, next) => {
-  // Adjust Access-Control-Allow-Origin to your frontend URL if needed, e.g. 'http://localhost:3002'
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header(
-    'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept, ph-auth-token'
-  );
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200); // Respond OK to OPTIONS preflight requests
-  }
-  next();
-});
+console.log('🧪 DB Pool created');
 
-// Function to get target URL either from DB or fallback to env var
-async function getTargetURL() {
+// 🧠 Fetch server + token from DB
+async function getAuthInfo() {
   try {
-    const result = await pool.query('SELECT server FROM configurations LIMIT 1');
-    if (result.rows.length === 0) {
-      console.warn('No configuration found in DB, falling back to PROXY_TARGET env var');
-      if (!process.env.PROXY_TARGET) {
-        throw new Error('No proxy target found in DB or environment variable');
-      }
-      return process.env.PROXY_TARGET;
-    }
-    return result.rows[0].server;
+    const result = await pool.query('SELECT server, ph_auth_token FROM configurations LIMIT 1');
+    if (result.rows.length === 0) throw new Error('No config found in DB');
+    const { server, ph_auth_token } = result.rows[0];
+    console.log(`🔗 SOAR target from DB: ${server}`);
+    return { server, token: ph_auth_token };
   } catch (err) {
-    console.error('Failed to fetch server URL from database:', err.message);
+    console.error('❌ DB error:', err.message);
     process.exit(1);
   }
 }
 
-(async () => {
-  const target = await getTargetURL();
-
-  app.use(
-    '/proxy',
-    createProxyMiddleware({
-      target,
-      changeOrigin: true,
-      secure: false, // Set false for self-signed certs; true if certs valid
-      pathRewrite: {
-        '^/proxy': '', // remove /proxy prefix when forwarding
-      },
-      onProxyReq: (proxyReq, req) => {
-        console.log(
-          `🔁 Proxying request: ${req.method} ${req.originalUrl} → ${target}${req.url.replace(
-            /^\/proxy/,
-            ''
-          )}`
-        );
-      },
-      onError: (err, req, res) => {
-        console.error('❌ Proxy error:', err.message);
-        res.status(500).send('Proxy error occurred.');
-      },
-    })
+// CORS
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization, ph-auth-token'
   );
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
 
-  // Read proxy port from env or default to 3001
-  const PORT = process.env.PROXY_PORT ? parseInt(process.env.PROXY_PORT, 10) : 3001;
+// Logging
+app.use(express.json());
+app.use((req, res, next) => {
+  console.log(`📩 Incoming Request: ${req.method} ${req.originalUrl}`);
+  console.log('🧾 Incoming Headers:', req.headers);
+  next();
+});
+
+// Manual proxy handler
+(async () => {
+  const { server, token } = await getAuthInfo();
+
+  const targetHost = new URL(server).hostname;
+  const targetPort = 443;
+
+  app.all('/proxy/*', (req, res) => {
+    const path = req.originalUrl.replace(/^\/proxy/, '');
+    const options = {
+      hostname: targetHost,
+      port: targetPort,
+      path,
+      method: req.method,
+      rejectUnauthorized: false,
+      headers: {
+        'Content-Type': 'application/json',
+        'ph-auth-token': token,
+      },
+    };
+
+    console.log(`➡️ ${req.method} ${path}`);
+    console.log(`🔐 Injected Token: ${token}`);
+
+    const proxyReq = https.request(options, (proxyRes) => {
+      let data = '';
+      proxyRes.on('data', chunk => data += chunk);
+      proxyRes.on('end', () => {
+        res.status(proxyRes.statusCode).send(data);
+      });
+    });
+
+    proxyReq.on('error', err => {
+      console.error('❌ Proxy Error:', err.message);
+      res.status(500).send('Proxy Error: ' + err.message);
+    });
+
+    if (req.body && Object.keys(req.body).length > 0) {
+      proxyReq.write(JSON.stringify(req.body));
+    }
+
+    proxyReq.end();
+  });
 
   app.listen(PORT, () => {
-    console.log(`✅ Proxy running on http://localhost:${PORT} → ${target}`);
+    console.log(`✅ Proxy running at http://localhost:${PORT} → ${server}`);
   });
 })();
