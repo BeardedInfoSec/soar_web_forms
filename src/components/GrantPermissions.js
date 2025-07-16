@@ -14,7 +14,7 @@ const GrantPermissions = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get('http://localhost:5001/users'); // Adjust endpoint as needed
+        const response = await axios.get('http://localhost:5050/users'); // Adjust endpoint as needed
         setUsers(response.data); // Set users to the fetched data
       } catch (err) {
         setError('Error fetching users: ' + err.message);
@@ -32,7 +32,7 @@ const GrantPermissions = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:5001/admin/grant-permissions', {
+      const response = await axios.post('http://localhost:5050/admin/grant-permissions', {
         username: selectedUser, // Use selectedUser for username
         role,
       });

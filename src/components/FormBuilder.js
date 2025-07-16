@@ -63,7 +63,7 @@ useEffect(() => {
 
 const loadSavedForms = async () => {
   try {
-    const response = await fetch('http://localhost:5001/forms');
+    const response = await fetch('http://localhost:5050/forms');
     if (!response.ok) {
       throw new Error(`Failed to fetch forms: ${response.status}`);
     }
@@ -85,7 +85,7 @@ const loadForm = async () => {
   }
 
   try {
-    const response = await fetch(`http://localhost:5001/forms/${encodeURIComponent(selectedForm)}`);
+    const response = await fetch(`http://localhost:5050/forms/${encodeURIComponent(selectedForm)}`);
     if (!response.ok) {
       throw new Error(`Failed to load form: ${response.status}`);
     }
@@ -282,7 +282,7 @@ const addElement = (type) => {
     
     // Send form data to backend
     try {
-      const response = await fetch('http://localhost:5001/save_form', {
+      const response = await fetch('http://localhost:5050/save_form', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -297,7 +297,7 @@ const addElement = (type) => {
         // Prompt the user to confirm overwrite
         if (window.confirm('A form with this name already exists. Do you want to overwrite it?')) {
           formData.overwrite = true;
-          const overwriteResponse = await fetch('http://localhost:5001/save_form', {
+          const overwriteResponse = await fetch('http://localhost:5050/save_form', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

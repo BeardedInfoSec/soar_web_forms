@@ -101,7 +101,7 @@ app.get('/api/configuration', async (req, res) => {
             return res.status(404).json({ message: 'No configuration found' });
         }
         
-        console.log('Configuration fetched successfully:', result.rows[0]); // Log successful fetch
+// Log successful fetch
         res.status(200).json(result.rows[0]); // Return the configuration data
     } catch (error) {
         console.error('Error fetching configuration:', error);
@@ -389,7 +389,7 @@ app.get('/users', async (req, res) => {
 
 
 // Start the server
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5050;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });

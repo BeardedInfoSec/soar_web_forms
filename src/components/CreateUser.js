@@ -21,7 +21,7 @@ const CreateUser = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:5001/admin/create-user', {
+      const response = await axios.post('http://localhost:5050/admin/create-user', {
         firstName,
         lastName,
         email,
