@@ -43,34 +43,24 @@ const FormDisplay = () => {
         const xmlDoc = parser.parseFromString(xmlString, 'application/xml');
         const name = xmlDoc.querySelector('form > name')?.textContent || 'Unnamed Form';
         const label = xmlDoc.querySelector('form > label')?.textContent || 'event_data';
-    
+
         const elements = Array.from(xmlDoc.querySelectorAll('elements > element')).map((el) => {
-            const type = el.querySelector('type')?.textContent || 'text';
             const optionsNode = el.querySelector('dropdownOptions');
             const options = optionsNode ? Array.from(optionsNode.querySelectorAll('option')).map(opt => opt.textContent) : [];
-    
-            // Extract CSV data if present
-            const csvData = Array.from(el.querySelectorAll('settings > csvData > row')).map(row =>
-                Array.from(row.querySelectorAll('cell')).map(cell => cell.textContent)
-            );
-    
+
             return {
-                type,
+                type: el.querySelector('type')?.textContent || 'text',
                 key: el.querySelector('key')?.textContent || '',
                 label: el.querySelector('label')?.textContent || '',
                 required: el.querySelector('required')?.textContent === 'true',
                 placeholder: el.querySelector('placeholder')?.textContent || '',
                 alignment: el.querySelector('alignment')?.textContent || 'center',
-                options: options,
-                settings: {
-                    csvData: csvData.length > 0 ? csvData : [] // Ensure csvData is set correctly
-                }
+                options: options
             };
         });
-    
+
         return { name, label, elements };
     };
-    
 
     useEffect(() => {
         const fetchFormData = async () => {
@@ -110,98 +100,101 @@ const FormDisplay = () => {
     };
 
     const handleFileChange = (key, file) => {
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setFormValues((prev) => ({
-                    ...prev,
-                    [`file_${key}`]: e.target.result, // Store base64 encoded file
-                    [`file_name_${key}`]: file.name,
-                    [`file_path_${key}`]: file.webkitRelativePath || file.name,
-                    [`file_size_${key}`]: file.size,
-                    [`file_type_${key}`]: file.type,
-                    [`file_last_modified_${key}`]: new Date(file.lastModified).toISOString(),
-                }));
-            };
-            reader.readAsDataURL(file);
-        }
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setFormValues(prev => ({
+          ...prev,
+          [`file_${key}`]: e.target.result, // base64 data URL
+          [`file_name_${key}`]: file.name,
+          [`file_size_${key}`]: file.size,
+          [`file_type_${key}`]: file.type,
+          [`file_lastmod_${key}`]: file.lastModified
+        }));
+      };
+      reader.readAsDataURL(file);
     };
 
-    const handleSubmit = async (event) => {
-        event.preventDefault(); // Prevent default form submission
-        try {
-            const containerResponse = await createContainer(formData.name, formData.label);
-            const containerId = containerResponse.id;
-            console.log('Container created successfully:', containerResponse);
-    
-            // Add artifacts for each form field and table data
-            const aggregatedCEF = {};
-            formData.elements.forEach((element) => {
-                if (element.type === 'table' && element.settings.csvData) {
-                    // Extract headers and transpose data by columns
-                    const headers = element.settings.csvData[0];
-                    const columns = headers.reduce((acc, header, colIndex) => {
-                        acc[header] = element.settings.csvData.slice(1).map(row => row[colIndex]).filter(cell => cell !== undefined && cell !== '');
-                        return acc;
-                    }, {});
-    
-                    // Merge column data into the aggregated CEF
-                    Object.assign(aggregatedCEF, columns);
-                } else if (!element.type.startsWith('file') && formValues[element.key] !== undefined) {
-                    // Include non-file form data
-                    aggregatedCEF[element.key] = formValues[element.key];
-                }
-            });
-    
-            if (Object.keys(aggregatedCEF).length > 0) {
-                const artifactResponse = await addArtifact(containerId, aggregatedCEF, `${formData.name} Artifact`);
-                console.log('Artifact added successfully:', artifactResponse);
-            }
-    
-            // Upload files to the vault and add file metadata as artifacts
-            for (const key in formValues) {
-                if (key.startsWith('file_')) {
-                    const fileData = formValues[key];
-                    const fileNameKey = `file_name_${key.split('_')[1]}`;
-                    const fileName = formValues[fileNameKey];
-                    const fileType = formValues[`file_type_${key.split('_')[1]}`];
-                    const fileSize = formValues[`file_size_${key.split('_')[1]}`];
-                    const fileSizeInKB = (fileSize / 1024).toFixed(2);
-                    const fileSizeFormatted = fileSizeInKB > 1024 ? `${(fileSizeInKB / 1024).toFixed(2)} MB` : `${fileSizeInKB} KB`;
-    
-                    if (fileData && fileName) {
-                        const fileResponse = await uploadFileToVault(containerId, fileData, fileName);
-                        console.log('File uploaded successfully:', fileResponse);
-    
-                        // Add file metadata as artifact
-                        const fileArtifactData = {
-                            hash: fileResponse.hash,
-                            filename: fileName,
-                            filetype: fileType,
-                            filesize: fileSizeFormatted,
-                        };
-                        const fileArtifactResponse = await addArtifact(containerId, fileArtifactData, `${fileName} Metadata Artifact`);
-                        console.log('File metadata artifact added successfully:', fileArtifactResponse);
-                    } else {
-                        console.error('Missing file data or file name for:', key);
-                    }
-                }
-            }
-    
-            alert('Form submitted and data sent to Splunk SOAR successfully!');
-        } catch (error) {
-            console.error('Error submitting form:', error);
-            alert('Failed to submit form data to Splunk SOAR.');
-        }
-    };
-    
-    
+
+const handleSubmit = async (event) => {
+  event.preventDefault(); // Prevent default form submission
+  try {
+    const containerResponse = await createContainer(formData.name, formData.label);
+    const containerId = containerResponse.id;
+    console.log('✅ Container created successfully:', containerResponse);
+
+    // Aggregate all non-file form values into one artifact
+    const aggregatedCEF = Object.keys(formValues).reduce((acc, key) => {
+      if (!key.startsWith('file_')) {
+        acc[key] = formValues[key];
+      }
+      return acc;
+    }, {});
+
+    if (Object.keys(aggregatedCEF).length > 0) {
+      const artifactResponse = await addArtifact(containerId, aggregatedCEF, `${formData.name} Artifact`);
+      console.log('✅ Artifact added successfully:', artifactResponse);
+    }
+
+
+// ✅ Upload each file and add corresponding metadata
+const uploadedBaseKeys = new Set();
+
+for (const key of Object.keys(formValues)) {
+  if (
+    key.startsWith('file_') &&
+    !key.startsWith('file_name_') &&
+    !key.startsWith('file_size_') &&
+    !key.startsWith('file_type_') &&
+    !key.startsWith('file_lastmod_')
+  ) {
+    const baseKey = key.replace('file_', '');
+    if (uploadedBaseKeys.has(baseKey)) continue;
+    uploadedBaseKeys.add(baseKey);
+
+    const fileData = formValues[`file_${baseKey}`];
+    const fileName = formValues[`file_name_${baseKey}`];
+    const fileType = formValues[`file_type_${baseKey}`];
+    const fileSize = formValues[`file_size_${baseKey}`];
+
+    if (fileData && fileName) {
+      try {
+        const fileResponse = await uploadFileToVault(containerId, fileData, fileName);
+        console.log('✅ File uploaded:', fileResponse);
+
+        const metadata = {
+          hash: fileResponse.hash,
+          filename: fileName,
+          filetype: fileType,
+          filesize: `${(fileSize / 1024).toFixed(2)} KB`,
+        };
+
+        const metaResponse = await addArtifact(containerId, metadata, `${fileName} Metadata`);
+        console.log('✅ File metadata added:', metaResponse);
+      } catch (err) {
+        console.error(`❌ Upload failed for ${fileName}:`, err);
+      }
+    } else {
+      console.warn(`⚠️ Skipping ${baseKey} – missing file data`);
+    }
+  }
+}
+
+
+    alert('✅ Form submitted and data sent to Splunk SOAR successfully!');
+  } catch (error) {
+    console.error('❌ Error submitting form:', error);
+    alert('❌ Failed to submit form data to Splunk SOAR.');
+  }
+};
+
+
     const createContainer = async (name, label) => {
-        const response = await fetch(`${authInfo.server}/rest/container`, {
+        const response = await fetch('http://localhost:3001/proxy/rest/container', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'ph-auth-token': authInfo.token,
             },
             body: JSON.stringify({
                 name,
@@ -218,47 +211,64 @@ const FormDisplay = () => {
     };
     
     const addArtifact = async (containerId, cefData, artifactName) => {
-        const response = await fetch(`${authInfo.server}/rest/artifact`, {
+        const response = await fetch('http://localhost:3001/proxy/rest/artifact', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'ph-auth-token': authInfo.token,
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 container_id: containerId,
-                cef: cefData, // Aggregated form data
+                cef: cefData,
                 name: artifactName,
                 label: 'event_data',
                 description: 'Artifact created via API with aggregated form data',
             }),
         });
+
+        const rawText = await response.text(); // Read raw first
+
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Failed to add artifact:', errorText);
-            throw new Error('Failed to add artifact');
+            console.error('❌ Artifact response not ok:', rawText);
+            throw new Error(`Failed to add artifact: ${response.status}`);
         }
-        return response.json();
+
+        try {
+            const data = JSON.parse(rawText);
+            return data;
+        } catch (err) {
+            console.error('❌ Failed to parse artifact JSON:', rawText);
+            throw new Error('Invalid JSON in artifact response');
+        }
     };
 
-    const uploadFileToVault = async (containerId, fileData, fileKey) => {
-        const response = await fetch(`${authInfo.server}/rest/container_attachment`, {
+
+    const uploadFileToVault = async (containerId, fileData, fileName) => {
+        const response = await fetch('http://localhost:3001/proxy/rest/container_attachment', {
             method: 'POST',
             headers: {
-                'ph-auth-token': authInfo.token,
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 container_id: containerId,
-                file_content: fileData.split(',')[1], // Extract base64 content
-                file_name: fileKey,
+                file_content: fileData.split(',')[1], // Remove the base64 prefix
+                file_name: fileName,
             }),
         });
+
+        const rawText = await response.text(); // Get raw response for debugging
+
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Failed to upload the file to the vault:', errorText);
-            throw new Error('Failed to upload the file to the vault');
+            console.error('❌ Vault upload failed. Raw response:', rawText);
+            throw new Error(`Failed to upload the file to the vault: ${response.status}`);
         }
-        return response.json();
+
+        try {
+            const data = JSON.parse(rawText);
+            return data;
+        } catch (err) {
+            console.error('❌ Failed to parse vault upload JSON:', rawText);
+            throw new Error('Invalid JSON in vault upload response');
+        }
     };
 
     if (!formData) {
@@ -457,68 +467,6 @@ const FormDisplay = () => {
                         />
                     </div>
                 );
-
-        case 'table':
-            const tableData = element.settings?.csvData || [];
-
-            if (!Array.isArray(tableData) || tableData.length === 0) {
-                return (
-                    <div key={index} className="form-group" style={{ textAlign: element.alignment, marginBottom: '15px' }}>
-                        <label
-                            style={{
-                                display: 'block',
-                                marginBottom: '5px',
-                                fontWeight: 'bold',
-                                color: '#ffffff',
-                                textAlign: element.alignment,
-                            }}
-                        >
-                            {element.label}
-                        </label>
-                        <div>No CSV data to display</div>
-                    </div>
-                );
-            }
-
-            return (
-                <div key={index} className="form-group" style={{ textAlign: element.alignment, marginBottom: '15px' }}>
-                    {element.label && (
-                        <label
-                            style={{
-                                display: 'block',
-                                marginBottom: '5px',
-                                fontWeight: 'bold',
-                                color: '#ffffff',
-                                textAlign: element.alignment,
-                            }}
-                        >
-                            {element.label}
-                        </label>
-                    )}
-                    <table className="csv-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr>
-                                {Array.isArray(tableData[0]) && tableData[0].map((header, headerIndex) => (
-                                    <th key={headerIndex} style={{ border: '1px solid #ccc', padding: '8px', backgroundColor: '#333', color: '#fff' }}>
-                                        {header}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {tableData.slice(1).map((row, rowIndex) => (
-                                <tr key={rowIndex}>
-                                    {Array.isArray(row) && row.map((cell, cellIndex) => (
-                                        <td key={cellIndex} style={{ border: '1px solid #ccc', padding: '8px', textAlign: 'center' }}>
-                                            {cell}
-                                        </td>
-                                    ))}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            );
             default:
                 return (
                     <div key={index} className="form-group" style={{ textAlign: element.alignment, marginBottom: '15px' }}>

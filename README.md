@@ -81,8 +81,13 @@ node proxy.js
 
 ### 5. Start the React Frontend
 Set the React app port to 3002 and start it:
+For Windows use
 ```bash
 set PORT=3002 & npm start
+```
+For Mac use
+```bash
+PORT=3002 npm start
 ```
 
 ### 6. Access the Application
