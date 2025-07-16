@@ -18,7 +18,7 @@ const Configuration = () => {
       }
 
       // Backend URL (replace with your actual backend IP/domain)
-      const backendUrl = 'http://localhost:5000/configuration';
+      const backendUrl = 'http://localhost:5001/configuration';
 
       // Send data to the backend
       const response = await axios.post(backendUrl, {
@@ -55,7 +55,7 @@ const testConnection = async () => {
   setConnectionStatus('Testing connection...');
   try {
     // Fetch the stored config from your backend
-    const configResponse = await axios.get('http://localhost:5000/test_connection');
+    const configResponse = await axios.get('http://localhost:5001/test_connection');
 
     if (configResponse.status !== 200) {
       throw new Error('Failed to fetch configuration for test connection');

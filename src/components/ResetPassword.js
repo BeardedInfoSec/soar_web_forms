@@ -13,7 +13,7 @@ const ResetPassword = () => {
     // Fetch the list of users when the component mounts
     const fetchUsers = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/users'); // Adjust the endpoint as necessary
+        const response = await axios.get('http://localhost:5001/users'); // Adjust the endpoint as necessary
         setUsers(response.data); // Assuming response.data is an array of user objects
       } catch (err) {
         setError('Error fetching users: ' + err.message);
@@ -33,7 +33,7 @@ const ResetPassword = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/admin/reset-password', {
+      const response = await axios.post('http://localhost:5001/admin/reset-password', {
         username: selectedUser, // Use the selected user from the dropdown
         newPassword,
       });
