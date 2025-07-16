@@ -56,7 +56,7 @@ PG_PORT=5432
 
 JWT_SECRET=your_jwt_secret_here ##This can be whatever you want
 ## Server.js port
-PORT=5001
+PORT=5050
 
 ##Splunk SOAR IP
 ## Proxy.js ports
@@ -81,11 +81,12 @@ node proxy.js
 
 ### 5. Start the React Frontend
 Set the React app port to 3002 and start it:
-For Windows use
+
+##### Windows use
 ```bash
 set PORT=3002 & npm start
 ```
-For Mac use
+##### Mac use
 ```bash
 PORT=3002 npm start
 ```

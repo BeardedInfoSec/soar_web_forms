@@ -75,7 +75,6 @@ app.use((req, res, next) => {
     };
 
     console.log(`➡️ ${req.method} ${path}`);
-    console.log(`🔐 Injected Token: ${token}`);
 
     const proxyReq = https.request(options, (proxyRes) => {
       let data = '';

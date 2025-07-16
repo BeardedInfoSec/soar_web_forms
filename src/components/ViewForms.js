@@ -19,7 +19,7 @@ const ViewForms = ({ userRole }) => {
   useEffect(() => {
     const fetchForms = async () => {
       try {
-        const response = await fetch('http://localhost:5001/forms'); // Update with your backend URL
+        const response = await fetch('http://localhost:5050/forms'); // Update with your backend URL
         if (!response.ok) {
           throw new Error(`Failed to fetch forms: ${response.status}`);
         }
@@ -60,7 +60,7 @@ const ViewForms = ({ userRole }) => {
     try {
       await Promise.all(
         selectedForms.map(async (formId) => {
-          const response = await fetch(`http://localhost:5001/forms/${formId}`, { // Use form.id for deletion
+          const response = await fetch(`http://localhost:5050/forms/${formId}`, { // Use form.id for deletion
             method: 'DELETE',
           });
           if (!response.ok) {

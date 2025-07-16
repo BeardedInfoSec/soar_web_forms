@@ -13,7 +13,7 @@ const Login = ({ onLogin }) => {
     
     try {
       // Send a POST request to the backend login endpoint
-      const response = await axios.post('http://localhost:5001/login', {
+      const response = await axios.post('http://localhost:5050/login', {
         username,
         password,
       });
